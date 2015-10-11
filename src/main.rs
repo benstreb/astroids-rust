@@ -17,16 +17,19 @@ struct Spaceship {
 }
 
 const SPACESHIP_POINTS: [[f64; 2]; 3] = [
-    [50.0, 0.0],
-    [0.0, 50.0],
-    [50.0, 50.0],
+    [5.0, 10.0],
+    [-5.0, 10.0],
+    [0.0, -10.0],
 ];
 
 impl Spaceship {
     fn new() -> Spaceship {
-        return Spaceship{x: 0.0, y: 0.0};
+        return Spaceship{x: 100.0, y: 100.0};
     }
 }
+
+const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
+const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
 fn main() {
     let opengl = OpenGL::V3_2;
@@ -42,16 +45,15 @@ fn main() {
     let mut gl = GlGraphics::new(opengl);
     let ds = DrawState::new();
 
-    let poly = Polygon::new([0.0, 0.0, 0.0, 1.0]);
+    let poly = Polygon::new(WHITE);
     let mut spaceship = Spaceship::new();
 
     for e in window.events() {
         use graphics::clear;
-        const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 
         match e {
             Event::Render(r) => gl.draw(r.viewport(), |c, gl| {
-                clear(WHITE, gl);
+                clear(BLACK, gl);
                 poly.draw(&SPACESHIP_POINTS, &ds, c.transform.trans(spaceship.x, spaceship.y), gl)
             }),
             Event::Input(Input::Press(Button::Keyboard(k))) => 
