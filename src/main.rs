@@ -17,6 +17,10 @@ struct Spaceship {
     dx: f64,
     dy: f64,
     theta: f64,
+    accel: f64,
+    reverse: f64,
+    left: f64,
+    right: f64,
 }
 
 const SPACESHIP_POINTS: [[f64; 2]; 3] = [
@@ -33,12 +37,21 @@ impl Spaceship {
             dx: 0.0,
             dy: 0.0,
             theta: 0.0,
+            accel: 0.0,
+            reverse: 0.0,
+            left: 0.0,
+            right: 0.0,
         };
     }
 
-    fn accelerate(&mut self, ddv: f64) {
-        self.dx += self.theta.sin()*ddv;
-        self.dy -= self.theta.cos()*ddv;
+    fn accelerate(&mut self) {
+        let net_accel = self.accel - self.reverse;
+        self.dx += self.theta.sin()*net_accel;
+        self.dy -= self.theta.cos()*net_accel;
+    }
+
+    fn turn(&mut self) {
+        self.theta += self.right - self.left;
     }
 }
 
@@ -67,6 +80,8 @@ fn main() {
 
         match e {
             Event::Update(u) => {
+                spaceship.accelerate();
+                spaceship.turn();
                 spaceship.x = (spaceship.x + spaceship.dx*u.dt + 200.0) % 200.0;
                 spaceship.y = (spaceship.y + spaceship.dy*u.dt + 200.0) % 200.0;
             },
@@ -83,12 +98,20 @@ fn main() {
             }),
             Event::Input(Input::Press(Button::Keyboard(k))) =>
                 match k {
-                    Key::Up => spaceship.accelerate(2.0),
-                    Key::Down => spaceship.accelerate(-2.0),
-                    Key::Left => spaceship.theta -= 0.1,
-                    Key::Right => spaceship.theta += 0.1,
+                    Key::Up => spaceship.accel = 1.0,
+                    Key::Down => spaceship.reverse = 1.0,
+                    Key::Left => spaceship.left = 0.05,
+                    Key::Right => spaceship.right = 0.05,
                     Key::R => spaceship = Spaceship::new(),
                     Key::Q => return,
+                    _ => (),
+                },
+            Event::Input(Input::Release(Button::Keyboard(k))) =>
+                match k {
+                    Key::Up => spaceship.accel = 0.0,
+                    Key::Down => spaceship.reverse = 0.0,
+                    Key::Left => spaceship.left = 0.0,
+                    Key::Right => spaceship.right = 0.0,
                     _ => (),
                 },
             _ => (),
