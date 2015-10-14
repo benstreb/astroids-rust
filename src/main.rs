@@ -78,7 +78,7 @@ impl Bullet {
     }
 
     fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
-        let v = 5.0;
+        let v = 100.0;
         self.x = (self.x + self.theta.sin()*v*dt + x_max) % x_max;
         self.y = (self.y - self.theta.cos()*v*dt + y_max) % y_max;
         self.distance += v*dt;
@@ -90,11 +90,13 @@ const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
 fn main() {
     let opengl = OpenGL::V3_2;
+    const WIDTH: f64 = 200.0;
+    const HEIGHT: f64 = 200.0;
 
     let window = Window::new(
         WindowSettings::new(
             "vs-game",
-            [200, 200],
+            [WIDTH as u32, HEIGHT as u32],
         )
         .exit_on_esc(true)
     ).unwrap();
@@ -113,17 +115,17 @@ fn main() {
             Event::Update(u) => {
                 spaceship.accelerate();
                 spaceship.turn();
-                spaceship.x = (spaceship.x + spaceship.dx*u.dt + 200.0) % 200.0;
-                spaceship.y = (spaceship.y + spaceship.dy*u.dt + 200.0) % 200.0;
+                spaceship.x = (spaceship.x + spaceship.dx*u.dt + WIDTH) % WIDTH;
+                spaceship.y = (spaceship.y + spaceship.dy*u.dt + HEIGHT) % HEIGHT;
                 spaceship.cooldown = (spaceship.cooldown - u.dt).max(0.0);
                 if spaceship.firing && spaceship.cooldown == 0.0 {
-                    spaceship.cooldown = 1.0;
+                    spaceship.cooldown = 0.5;
                     bullets.push(Bullet::new(spaceship.x, spaceship.y, spaceship.theta));
                 }
                 for ref mut bullet in bullets.iter_mut() {
-                    bullet.go(u.dt, 200.0, 200.0);
+                    bullet.go(u.dt, WIDTH, HEIGHT);
                 }
-                bullets.retain(|b| b.distance < 10.0);
+                bullets.retain(|b| b.distance < 100.0);
             },
             Event::Render(r) => gl.draw(r.viewport(), |c, gl| {
                 clear(BLACK, gl);
