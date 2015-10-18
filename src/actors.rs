@@ -81,7 +81,9 @@ impl Spaceship {
     pub fn accelerate(&mut self) {
         let net_accel = self.accel - self.reverse;
         self.dx += self.theta.sin()*net_accel;
+        self.dx = self.dx.max(-100.0).min(100.0);
         self.dy -= self.theta.cos()*net_accel;
+        self.dy = self.dy.max(-100.0).min(100.0);
     }
 
     pub fn turn(&mut self) {
