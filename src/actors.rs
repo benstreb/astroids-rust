@@ -6,8 +6,8 @@ use piston::input::Key;
 pub struct Spaceship {
     x: f64,
     y: f64,
-    dx: f64,
-    dy: f64,
+    v: f64,
+    v_theta: f64,
     theta: f64,
     accel: f64,
     reverse: f64,
@@ -28,8 +28,8 @@ impl Spaceship {
         return Spaceship{
             x: 100.0,
             y: 100.0,
-            dx: 0.0,
-            dy: 0.0,
+            v: 0.0,
+            v_theta: 0.0,
             theta: 0.0,
             accel: 0.0,
             reverse: 0.0,
@@ -74,16 +74,18 @@ impl Spaceship {
     }
     
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
-        self.x = (self.x + self.dx*dt + x_max) % x_max;
-        self.y = (self.y + self.dy*dt + y_max) % y_max;
+        self.x = (self.x + self.v_theta.sin()*self.v*dt + x_max) % x_max;
+        self.y = (self.y - self.v_theta.cos()*self.v*dt + y_max) % y_max;
     }
 
     pub fn accelerate(&mut self) {
         let net_accel = self.accel - self.reverse;
-        self.dx += self.theta.sin()*net_accel;
-        self.dx = self.dx.max(-100.0).min(100.0);
-        self.dy -= self.theta.cos()*net_accel;
-        self.dy = self.dy.max(-100.0).min(100.0);
+        let dx = self.v_theta.sin()*self.v;
+        let dy = -self.v_theta.cos()*self.v;
+        let new_dx = dx + self.theta.sin()*net_accel;
+        let new_dy = dy - self.theta.cos()*net_accel;
+        self.v = (new_dx*new_dx+new_dy*new_dy).sqrt().min(200.0).max(-200.0);
+        self.v_theta = new_dx.atan2(-new_dy);
     }
 
     pub fn turn(&mut self) {
