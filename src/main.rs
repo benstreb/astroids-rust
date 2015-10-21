@@ -40,8 +40,8 @@ fn main() {
 
         match e {
             Event::Update(u) => {
-                spaceship.accelerate();
-                spaceship.turn();
+                spaceship.accelerate(u.dt);
+                spaceship.turn(u.dt);
                 spaceship.go(u.dt, WIDTH, HEIGHT);
                 spaceship.cooldown(u.dt);
                 if spaceship.is_firing() && spaceship.ready_to_fire() {

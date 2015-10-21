@@ -78,8 +78,8 @@ impl Spaceship {
         self.y = (self.y - self.v_theta.cos()*self.v*dt + y_max) % y_max;
     }
 
-    pub fn accelerate(&mut self) {
-        let net_accel = self.accel - self.reverse;
+    pub fn accelerate(&mut self, dt: f64) {
+        let net_accel = (self.accel - self.reverse)*dt*100.0;
         let dx = self.v_theta.sin()*self.v;
         let dy = -self.v_theta.cos()*self.v;
         let new_dx = dx + self.theta.sin()*net_accel;
@@ -88,8 +88,8 @@ impl Spaceship {
         self.v_theta = new_dx.atan2(-new_dy);
     }
 
-    pub fn turn(&mut self) {
-        self.theta += self.right - self.left;
+    pub fn turn(&mut self, dt: f64) {
+        self.theta += (self.right - self.left)*dt*100.0;
     }
     
     pub fn cooldown(&mut self, dt: f64) {
