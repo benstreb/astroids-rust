@@ -9,9 +9,10 @@ use piston::window::WindowSettings;
 use glutin_window::GlutinWindow as Window;
 use opengl_graphics::{GlGraphics, OpenGL};
 use graphics::DrawState;
+use std::iter::repeat;
 
 mod actors;
-use actors::Spaceship;
+use actors::{Spaceship, Astroid};
 
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
@@ -34,12 +35,19 @@ fn main() {
 
     let mut spaceship = Spaceship::new();
     let mut bullets = Vec::new();
+    let mut astroids: Vec<Astroid> = repeat(0)
+        .take(5)
+        .map(|_| Astroid::new())
+        .collect();
 
     for e in window.events() {
         use graphics::clear;
 
         match e {
             Event::Update(u) => {
+                for ref mut astroid in astroids.iter_mut() {
+                    astroid.go(u.dt, WIDTH, HEIGHT);
+                }
                 spaceship.accelerate(u.dt);
                 spaceship.turn(u.dt);
                 spaceship.go(u.dt, WIDTH, HEIGHT);
@@ -54,6 +62,9 @@ fn main() {
             },
             Event::Render(r) => gl.draw(r.viewport(), |c, gl| {
                 clear(BLACK, gl);
+                for astroid in astroids.iter() {
+                    astroid.draw(WHITE, c.transform, gl);
+                }
                 spaceship.draw(WHITE, &ds, c.transform, gl);
                 for bullet in bullets.iter() {
                     bullet.draw(WHITE, c.transform, gl);

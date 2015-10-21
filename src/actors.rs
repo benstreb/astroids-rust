@@ -1,4 +1,4 @@
-use graphics::{DrawState, Transformed, rectangle};
+use graphics::{DrawState, Transformed, rectangle, ellipse};
 use graphics::polygon::Polygon;
 use opengl_graphics::GlGraphics;
 use piston::input::Key;
@@ -141,5 +141,32 @@ impl Bullet {
     
     pub fn is_alive(&self) -> bool {
         return self.distance < 100.0;
+    }
+}
+
+pub struct Astroid {
+    x: f64,
+    y: f64,
+    v: f64,
+    theta: f64,
+}
+
+impl Astroid {
+    pub fn new() -> Astroid {
+        return Astroid {
+            x: 10.0,
+            y: 10.0,
+            v: 40.0,
+            theta: 1.0,
+        }
+    }
+
+    pub fn draw(&self, color: [f32; 4], t: [[f64; 3]; 2], gl: &mut GlGraphics) {
+        ellipse(color, ellipse::circle(self.x, self.y, 10.0), t, gl);
+    }
+
+    pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
+        self.x = (self.x + self.theta.sin()*self.v*dt + x_max) % x_max;
+        self.y = (self.y - self.theta.cos()*self.v*dt + y_max) % y_max;
     }
 }
