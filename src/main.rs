@@ -2,6 +2,7 @@ extern crate piston;
 extern crate glutin_window;
 extern crate graphics;
 extern crate opengl_graphics;
+extern crate rand;
 
 use piston::event_loop::Events;
 use piston::input::{Event, Input, Button, Key};
@@ -9,6 +10,7 @@ use piston::window::WindowSettings;
 use glutin_window::GlutinWindow as Window;
 use opengl_graphics::{GlGraphics, OpenGL};
 use graphics::DrawState;
+use rand::thread_rng;
 use std::iter::repeat;
 
 mod actors;
@@ -32,12 +34,13 @@ fn main() {
 
     let mut gl = GlGraphics::new(opengl);
     let ds = DrawState::new();
+    let mut rng = rand::thread_rng();
 
     let mut spaceship = Spaceship::new();
     let mut bullets = Vec::new();
     let mut astroids: Vec<Astroid> = repeat(0)
         .take(5)
-        .map(|_| Astroid::new())
+        .map(|_| Astroid::new(&mut rng))
         .collect();
 
     for e in window.events() {

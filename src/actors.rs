@@ -2,6 +2,8 @@ use graphics::{DrawState, Transformed, rectangle, ellipse};
 use graphics::polygon::Polygon;
 use opengl_graphics::GlGraphics;
 use piston::input::Key;
+use rand::Rng;
+use std::f64::consts::PI;
 
 pub struct Spaceship {
     x: f64,
@@ -152,12 +154,12 @@ pub struct Astroid {
 }
 
 impl Astroid {
-    pub fn new() -> Astroid {
+    pub fn new<R: Rng>(rng: &mut R) -> Astroid {
         return Astroid {
-            x: 10.0,
-            y: 10.0,
-            v: 40.0,
-            theta: 1.0,
+            x: rng.gen_range(0.0, 100.0),
+            y: rng.gen_range(0.0, 100.0),
+            v: rng.gen_range(40.0, 60.0),
+            theta: rng.gen_range(0.0, 2.0*PI),
         }
     }
 
