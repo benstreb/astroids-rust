@@ -66,7 +66,7 @@ fn main() {
             Event::Render(r) => gl.draw(r.viewport(), |c, gl| {
                 clear(BLACK, gl);
                 for astroid in astroids.iter() {
-                    astroid.draw(WHITE, c.transform, gl);
+                    astroid.draw(WHITE, &ds, c.transform, gl);
                 }
                 spaceship.draw(WHITE, &ds, c.transform, gl);
                 for bullet in bullets.iter() {

@@ -1,5 +1,6 @@
-use graphics::{DrawState, Transformed, rectangle, ellipse};
+use graphics::{DrawState, Transformed, rectangle};
 use graphics::polygon::Polygon;
+use graphics::line::Line;
 use opengl_graphics::GlGraphics;
 use piston::input::Key;
 use rand::Rng;
@@ -146,6 +147,13 @@ impl Bullet {
     }
 }
 
+const ASTROID_BORDER: [[f64; 4]; 4] = [
+    [-5.0, 0.0, 0.0, 5.0],
+    [0.0, 5.0, 5.0, 0.0],
+    [5.0, 0.0, 0.0, -5.0],
+    [0.0, -5.0, -5.0, 0.0],
+];
+
 pub struct Astroid {
     x: f64,
     y: f64,
@@ -163,8 +171,11 @@ impl Astroid {
         }
     }
 
-    pub fn draw(&self, color: [f32; 4], t: [[f64; 3]; 2], gl: &mut GlGraphics) {
-        ellipse(color, ellipse::circle(self.x, self.y, 10.0), t, gl);
+    pub fn draw(&self, color: [f32; 4], ds: &DrawState, t: [[f64; 3]; 2], gl: &mut GlGraphics) {
+        let line_info = Line::new(color, 1.0);
+        for line_points in ASTROID_BORDER.iter() {
+            line_info.draw(*line_points, ds, t.trans(self.x, self.y), gl);
+        }
     }
 
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
