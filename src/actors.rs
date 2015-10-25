@@ -147,33 +147,52 @@ impl Bullet {
     }
 }
 
+const LARGE_ASTROID_BORDER: [[f64; 4]; 4] = [
+    [-15.0, 0.0, 0.0, 15.0],
+    [0.0, 15.0, 15.0, 0.0],
+    [15.0, 0.0, 0.0, -15.0],
+    [0.0, -15.0, -15.0, 0.0],
+];
+
 const ASTROID_BORDER: [[f64; 4]; 4] = [
+    [-10.0, 0.0, 0.0, 10.0],
+    [0.0, 10.0, 10.0, 0.0],
+    [10.0, 0.0, 0.0, -10.0],
+    [0.0, -10.0, -10.0, 0.0],
+];
+
+const SMALL_ASTROID_BORDER: [[f64; 4]; 4] = [
     [-5.0, 0.0, 0.0, 5.0],
     [0.0, 5.0, 5.0, 0.0],
     [5.0, 0.0, 0.0, -5.0],
     [0.0, -5.0, -5.0, 0.0],
 ];
 
+const ASTROID_BORDERS: [&'static[[f64; 4]; 4]; 3] = [&LARGE_ASTROID_BORDER, &ASTROID_BORDER, &SMALL_ASTROID_BORDER];
+
 pub struct Astroid {
     x: f64,
     y: f64,
     v: f64,
     theta: f64,
+    border: &'static[[f64; 4]; 4],
 }
 
 impl Astroid {
     pub fn new<R: Rng>(rng: &mut R) -> Astroid {
+        use rand::sample;
         return Astroid {
             x: rng.gen_range(0.0, 100.0),
             y: rng.gen_range(0.0, 100.0),
             v: rng.gen_range(40.0, 60.0),
             theta: rng.gen_range(0.0, 2.0*PI),
+            border: sample(rng, ASTROID_BORDERS.iter(), 1)[0],
         }
     }
 
     pub fn draw(&self, color: [f32; 4], ds: &DrawState, t: [[f64; 3]; 2], gl: &mut GlGraphics) {
-        let line_info = Line::new(color, 1.0);
-        for line_points in ASTROID_BORDER.iter() {
+        let line_info = Line::new(color, 0.5);
+        for line_points in self.border.iter() {
             line_info.draw(*line_points, ds, t.trans(self.x, self.y), gl);
         }
     }
