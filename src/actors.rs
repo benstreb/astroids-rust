@@ -6,6 +6,13 @@ use piston::input::Key;
 use rand::Rng;
 use std::f64::consts::PI;
 
+fn to_cartesian(theta: f64, r: f64) -> (f64, f64) {
+    return (
+        theta.sin()*r,
+        -theta.cos()*r,
+    )
+}
+
 pub struct Spaceship {
     x: f64,
     y: f64,
@@ -77,16 +84,17 @@ impl Spaceship {
     }
     
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
-        self.x = (self.x + self.v_theta.sin()*self.v*dt + x_max) % x_max;
-        self.y = (self.y - self.v_theta.cos()*self.v*dt + y_max) % y_max;
+        let (dx, dy) = to_cartesian(self.v_theta, self.v*dt);
+        self.x = (self.x + dx + x_max) % x_max;
+        self.y = (self.y + dy + y_max) % y_max;
     }
 
     pub fn accelerate(&mut self, dt: f64) {
         let net_accel = (self.accel - self.reverse)*dt*100.0;
-        let dx = self.v_theta.sin()*self.v;
-        let dy = -self.v_theta.cos()*self.v;
-        let new_dx = dx + self.theta.sin()*net_accel;
-        let new_dy = dy - self.theta.cos()*net_accel;
+        let (dx, dy) = to_cartesian(self.v_theta, self.v);
+        let (ddx, ddy) = to_cartesian(self.theta, net_accel);
+        let new_dx = dx + ddx;
+        let new_dy = dy + ddy;
         self.v = (new_dx*new_dx+new_dy*new_dy).sqrt().min(200.0).max(-200.0);
         self.v_theta = new_dx.atan2(-new_dy);
     }
