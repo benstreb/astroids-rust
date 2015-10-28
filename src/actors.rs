@@ -155,46 +155,23 @@ impl Bullet {
     }
 }
 
-const LARGE_ASTROID_BORDER: [[f64; 4]; 4] = [
-    [-15.0, 0.0, 0.0, 15.0],
-    [0.0, 15.0, 15.0, 0.0],
-    [15.0, 0.0, 0.0, -15.0],
-    [0.0, -15.0, -15.0, 0.0],
-];
-
-const ASTROID_BORDER: [[f64; 4]; 4] = [
-    [-10.0, 0.0, 0.0, 10.0],
-    [0.0, 10.0, 10.0, 0.0],
-    [10.0, 0.0, 0.0, -10.0],
-    [0.0, -10.0, -10.0, 0.0],
-];
-
-const SMALL_ASTROID_BORDER: [[f64; 4]; 4] = [
-    [-5.0, 0.0, 0.0, 5.0],
-    [0.0, 5.0, 5.0, 0.0],
-    [5.0, 0.0, 0.0, -5.0],
-    [0.0, -5.0, -5.0, 0.0],
-];
-
-const ASTROID_BORDERS: [&'static[[f64; 4]; 4]; 3] = [&LARGE_ASTROID_BORDER, &ASTROID_BORDER, &SMALL_ASTROID_BORDER];
-
 pub struct Astroid {
     x: f64,
     y: f64,
     v: f64,
     theta: f64,
-    border: &'static[[f64; 4]; 4],
+    border: Vec<[f64; 4]>,
 }
 
 impl Astroid {
     pub fn new<R: Rng>(rng: &mut R) -> Astroid {
-        use rand::sample;
+        let radius = (rng.gen_range(1, 3)*5) as f64;
         return Astroid {
             x: rng.gen_range(0.0, 100.0),
             y: rng.gen_range(0.0, 100.0),
             v: rng.gen_range(40.0, 60.0),
             theta: rng.gen_range(0.0, 2.0*PI),
-            border: sample(rng, ASTROID_BORDERS.iter(), 1)[0],
+            border: Astroid::create_border(rng, radius),
         }
     }
 
@@ -208,5 +185,24 @@ impl Astroid {
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
         self.x = (self.x + self.theta.sin()*self.v*dt + x_max) % x_max;
         self.y = (self.y - self.theta.cos()*self.v*dt + y_max) % y_max;
+    }
+
+    pub fn create_border<R: Rng>(rng: &mut R, radius: f64) -> Vec<[f64; 4]> {
+        let spread = radius/5.0;
+        let point_count = rng.gen_range(8, 12);
+        let mut points = Vec::with_capacity(point_count);
+        let theta_0 = rng.gen_range(0.0, 2.0*PI);
+        for theta in (1..point_count+1).map(|i| theta_0 + 2.0*PI*i as f64/point_count as f64) {
+            let distance = radius + rng.gen_range(-spread, spread);
+            points.push(to_cartesian(theta, distance));
+        };
+        let point = points[0];
+        points.push(point);
+        let mut lines = Vec::with_capacity(point_count);
+        for point in points.iter().zip(points.iter().skip(1)) {
+            let (&(x1, x2), &(y1, y2)) = point;
+            lines.push([x1, x2, y1, y2]);
+        }
+        return lines;
     }
 }
