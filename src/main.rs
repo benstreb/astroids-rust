@@ -14,6 +14,7 @@ use rand::thread_rng;
 use std::iter::repeat;
 
 mod actors;
+mod intersect;
 use actors::{Spaceship, Astroid};
 
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
