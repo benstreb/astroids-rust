@@ -78,7 +78,7 @@ fn lines_intersect(l1: [f64; 4], l2: [f64; 4]) -> bool {
         //t1 = (q + s − p) · r / (r · r) = t0 + s · r / (r · r)
         let t0 = (q - p).dot(r / r.dot(r));
         let t1 = t0 + s.dot(r / r.dot(r));
-        return !(t0 <= 0.0 && t1 <= 0.0 || t0 >= 1.0 && t1 >= 1.0)
+        return !(t0 < 0.0 && t1 < 0.0 || t0 > 1.0 && t1 > 1.0)
     } 
 
     // If r × s = 0 and (q − p) × r ≠ 0, then the two lines are parallel and non-intersecting.
@@ -93,6 +93,34 @@ fn lines_intersect(l1: [f64; 4], l2: [f64; 4]) -> bool {
 
     // If r × s ≠ 0 and 0 ≤ t ≤ 1 and 0 ≤ u ≤ 1, the two line segments meet at the point p + t r = q + u s.
     return 0.0 <= t && t <= 1.0 && 0.0 <= u && u <= 1.0;
+}
+
+#[cfg(test)]
+#[test]
+fn test_lines_intersect() {
+    let line = [-1.0, -1.0, 1.0, 1.0];
+    // Two lines intersect normally
+    assert!(lines_intersect(line, [1.0, -1.0, -1.0, 1.0]));
+    // Two lines don't intersect at all
+    assert!(!lines_intersect(line, [-2.0, -2.0, -3.0, -3.0]));
+    // Two lines are parallel and don't intersect
+    assert!(!lines_intersect(line, [-1.0, 0.0, 1.0, 2.0]));
+    // Two lines are co-linear and overlapping
+    assert!(lines_intersect(line, [-1.5, -1.5, 0.5, 0.5]));
+    assert!(lines_intersect(line, [0.5, 0.5, 1.5, 1.5]));
+    // Two lines are co-linear and one contains the other
+    assert!(lines_intersect(line, [-2.0, -2.0, 2.0, 2.0]));
+    assert!(lines_intersect(line, [-0.5, -0.5, 0.5, 0.5]));
+    // Two lines are co-linear and non-overlapping
+    assert!(!lines_intersect(line, [-3.0, -3.0, -2.0, -2.0]));
+    assert!(!lines_intersect(line, [2.0, 2.0, 3.0, 3.0]));
+    // Two lines are the same
+    assert!(lines_intersect(line, line));
+    // Two lines intersect at one point
+    assert!(lines_intersect(line, [1.0, 1.0, 2.0, 2.0]));
+    assert!(lines_intersect(line, [1.0, 1.0, 1.0, 2.0]));
+    // One line's point touches the other line
+    assert!(lines_intersect(line, [0.0, 2.0, 2.0, 0.0]));
 }
 
 pub struct Spaceship {
