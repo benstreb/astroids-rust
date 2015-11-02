@@ -60,6 +60,7 @@ impl Div<f64> for Point {
 }
 
 // Intersection of p, p+r and q, q+s 
+// For details, See: http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect
 // p + t r = q + u s
 // t = ((q − p) × s) / (r × s)
 // u = ((q − p) × r) / (r × s)
