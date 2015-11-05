@@ -120,6 +120,12 @@ impl Spaceship {
         self.cooldown = 0.5;
         bullets.push(Bullet::new(self.x, self.y, self.theta));
     }
+
+    pub fn edges(&self) -> Vec<[f64; 4]> {
+        return SPACESHIP_POINTS.iter().map(|edge|
+            [edge[0] + self.x, edge[1] + self.y, edge[2] + self.x, edge[3] + self.y]
+        ).collect();
+    }
 }
 
 
@@ -164,6 +170,9 @@ pub struct Astroid {
     border: Vec<[f64; 4]>,
 }
 
+use std::iter::Map;
+use std::slice::Iter;
+
 impl Astroid {
     pub fn new<R: Rng>(rng: &mut R) -> Astroid {
         let radius = (rng.gen_range(1, 3)*5) as f64;
@@ -206,7 +215,13 @@ impl Astroid {
         }
         return lines;
     }
-    
+
+    pub fn edges(&self) -> Vec<[f64; 4]> {
+        return self.border.iter().map(|edge|
+            [edge[0] + self.x, edge[1] + self.y, edge[2] + self.x, edge[3] + self.y]
+        ).collect();
+    }
+
     pub fn is_collision(&self, bullet_path: [f64; 4]) -> bool {
         return false;
     }
