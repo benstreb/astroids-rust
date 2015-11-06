@@ -5,7 +5,6 @@ use opengl_graphics::GlGraphics;
 use piston::input::Key;
 use rand::Rng;
 use std::f64::consts::PI;
-use intersect::lines_intersect;
 
 fn to_cartesian(theta: f64, r: f64) -> (f64, f64) {
     return (
@@ -122,9 +121,11 @@ impl Spaceship {
     }
 
     pub fn edges(&self) -> Vec<[f64; 4]> {
-        return SPACESHIP_POINTS.iter().map(|edge|
-            [edge[0] + self.x, edge[1] + self.y, edge[2] + self.x, edge[3] + self.y]
-        ).collect();
+        return SPACESHIP_POINTS.iter()
+            .zip(SPACESHIP_POINTS.iter().cycle().skip(1)).map(|(p1, p2)| {
+                [p1[0] + self.x, p1[1] + self.y, p2[0] + self.x, p2[1] + self.y]
+            })
+            .collect();
     }
 }
 
