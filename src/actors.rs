@@ -5,6 +5,7 @@ use opengl_graphics::GlGraphics;
 use piston::input::Key;
 use rand::Rng;
 use std::f64::consts::PI;
+use intersect::lines_intersect;
 
 fn to_cartesian(theta: f64, r: f64) -> (f64, f64) {
     return (
@@ -49,7 +50,7 @@ impl Spaceship {
             cooldown: 0.0,
         };
     }
-    
+
     pub fn handle_press(&mut self, key: Key) {
         match key {
             Key::Up => self.accel = 1.0,
@@ -60,7 +61,7 @@ impl Spaceship {
             _ => (),
         }
     }
-    
+
     pub fn handle_release(&mut self, key: Key) {
         match key {
             Key::Up => self.accel = 0.0,
@@ -71,7 +72,7 @@ impl Spaceship {
             _ => (),
         }
     }
-    
+
     pub fn draw(&mut self, color: [f32; 4], ds: &DrawState, t: [[f64; 3]; 2], gl: &mut GlGraphics) {
         Polygon::new(color).draw(
             &SPACESHIP_POINTS,
@@ -82,7 +83,7 @@ impl Spaceship {
             gl,
         );
     }
-    
+
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
         let (dx, dy) = to_cartesian(self.v_theta, self.v*dt);
         self.x = (self.x + dx + x_max) % x_max;
@@ -102,19 +103,19 @@ impl Spaceship {
     pub fn turn(&mut self, dt: f64) {
         self.theta += (self.right - self.left)*dt*100.0;
     }
-    
+
     pub fn cooldown(&mut self, dt: f64) {
         self.cooldown = (self.cooldown - dt).max(0.0);
     }
-    
+
     pub fn ready_to_fire(&self) -> bool {
         return self.cooldown == 0.0;
     }
-    
+
     pub fn is_firing(&self) -> bool {
         return self.firing;
     }
-    
+
     pub fn fire(&mut self, bullets: &mut Vec<Bullet>) {
         self.cooldown = 0.5;
         bullets.push(Bullet::new(self.x, self.y, self.theta));
@@ -126,6 +127,12 @@ impl Spaceship {
                 [p1[0] + self.x, p1[1] + self.y, p2[0] + self.x, p2[1] + self.y]
             })
             .collect();
+    }
+
+    pub fn collides<I: Iterator<Item=[f64; 4]>>(&self, mut edges: I) -> bool {
+        return self.edges().iter().any(|edge| {
+            edges.any(|other_edge| lines_intersect(*edge, other_edge))
+        });
     }
 }
 
@@ -146,7 +153,7 @@ impl Bullet {
             distance: 0.0,
         };
     }
-    
+
     pub fn draw(&self, color: [f32; 4], t: [[f64; 3]; 2], gl: &mut GlGraphics) {
         rectangle(color, rectangle::square(self.x, self.y, 2.0), t, gl);
     }
@@ -157,7 +164,7 @@ impl Bullet {
         self.y = (self.y - self.theta.cos()*v*dt + y_max) % y_max;
         self.distance += v*dt;
     }
-    
+
     pub fn is_alive(&self) -> bool {
         return self.distance < 100.0;
     }

@@ -12,7 +12,6 @@ use opengl_graphics::{GlGraphics, OpenGL};
 use graphics::DrawState;
 use rand::thread_rng;
 use std::iter::repeat;
-use intersect::lines_intersect;
 
 mod actors;
 mod intersect;
@@ -56,13 +55,11 @@ fn main() {
                 spaceship.cooldown(u.dt);
                 for ref mut astroid in astroids.iter_mut() {
                     astroid.go(u.dt, WIDTH, HEIGHT);
-                    for edge in spaceship.edges().iter() {
-                        if astroid.edges()
-                            .iter()
-                            .any(|astroid_edge| lines_intersect(*edge, *astroid_edge)) {
-                            print!("Collided with astroid\n");
-                        }
-                    }
+                }
+                let astroid_edges = astroids.iter()
+                    .flat_map(|astroid| astroid.edges());
+                if spaceship.collides(astroid_edges) {
+                    print!("Collided with astroid\n");
                 }
                 if spaceship.is_firing() && spaceship.ready_to_fire() {
                     spaceship.fire(&mut bullets);
