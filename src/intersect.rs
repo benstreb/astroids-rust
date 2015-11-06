@@ -58,7 +58,7 @@ pub fn lines_intersect(l1: [f64; 4], l2: [f64; 4]) -> bool {
     let s = Point::new(l2[2] - l2[0], l2[3] - l2[1]);
 
     //If r × s = 0 and (q − p) × r = 0, then the two lines are collinear.
-    if (r.cross(s) == 0.0 && (p - q).cross(r) == 0.0) {
+    if r.cross(s) == 0.0 && (p - q).cross(r) == 0.0 {
         // If the interval between t0 and t1 intersects the interval [0, 1] then the line segments are collinear and overlapping; otherwise they are collinear and disjoint.
         // Note that if s and r point in opposite directions, then s · r < 0 and so the interval to be checked is [t1, t0] rather than [t0, t1].
         //t0 = (q − p) · r / (r · r)
@@ -69,7 +69,7 @@ pub fn lines_intersect(l1: [f64; 4], l2: [f64; 4]) -> bool {
     }
 
     // If r × s = 0 and (q − p) × r ≠ 0, then the two lines are parallel and non-intersecting.
-    if (r.cross(s) == 0.0) {
+    if r.cross(s) == 0.0 {
         return false;
     }
 
