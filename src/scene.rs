@@ -2,7 +2,7 @@ use glutin_window::GlutinWindow;
 use graphics::DrawState;
 use opengl_graphics::GlGraphics;
 use piston::event_loop::Events;
-use piston::input::{Button, Event, Input, Key};
+use piston::input::{Button, Event, Input, Key, RenderArgs, UpdateArgs};
 use rand::Rng;
 use std::iter::repeat;
 
@@ -27,49 +27,55 @@ impl MainScene {
                 .collect(),
         };
     }
+
+    fn draw(&self, r: RenderArgs, ds: DrawState, gl: &mut GlGraphics) {
+        use graphics::clear;
+        gl.draw(r.viewport(), |c, gl| {
+            clear(BLACK, gl);
+            for astroid in self.astroids.iter() {
+                astroid.draw(WHITE, &ds, c.transform, gl);
+            }
+            self.spaceship.draw(WHITE, &ds, c.transform, gl);
+            for bullet in self.bullets.iter() {
+                bullet.draw(WHITE, c.transform, gl);
+            }
+        })
+    }
+
+    fn update(&mut self, u: UpdateArgs, (width, height): (f64, f64)) {
+        self.spaceship.accelerate(u.dt);
+        self.spaceship.turn(u.dt);
+        self.spaceship.go(u.dt, width, height);
+        self.spaceship.cooldown(u.dt);
+        for ref mut astroid in self.astroids.iter_mut() {
+            astroid.go(u.dt, width, height);
+        }
+        let astroid_edges = self.astroids.iter()
+            .flat_map(|astroid| astroid.edges());
+        if self.spaceship.collides(astroid_edges) {
+            print!("Collided with astroid\n");
+        }
+        if self.spaceship.is_firing() && self.spaceship.ready_to_fire() {
+            self.spaceship.fire(&mut self.bullets);
+        }
+        for ref mut bullet in self.bullets.iter_mut() {
+            bullet.go(u.dt, width, height);
+        }
+        self.bullets.retain(|b| b.is_alive());
+    }
 }
 
 const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
 impl Scene for MainScene {
-    fn events(&mut self, window: Box<GlutinWindow>, gl: &mut GlGraphics, (width, height): (f64, f64)) -> Option<Box<Scene>> {
-        use graphics::clear;
+    fn events(&mut self, window: Box<GlutinWindow>, gl: &mut GlGraphics, dimensions: (f64, f64)) -> Option<Box<Scene>> {
 
         let ds = DrawState::new();
         for e in window.events() {
             match e {
-                Event::Update(u) => {
-                    self.spaceship.accelerate(u.dt);
-                    self.spaceship.turn(u.dt);
-                    self.spaceship.go(u.dt, width, height);
-                    self.spaceship.cooldown(u.dt);
-                    for ref mut astroid in self.astroids.iter_mut() {
-                        astroid.go(u.dt, width, height);
-                    }
-                    let astroid_edges = self.astroids.iter()
-                        .flat_map(|astroid| astroid.edges());
-                    if self.spaceship.collides(astroid_edges) {
-                        print!("Collided with astroid\n");
-                    }
-                    if self.spaceship.is_firing() && self.spaceship.ready_to_fire() {
-                        self.spaceship.fire(&mut self.bullets);
-                    }
-                    for ref mut bullet in self.bullets.iter_mut() {
-                        bullet.go(u.dt, width, height);
-                    }
-                    self.bullets.retain(|b| b.is_alive());
-                },
-                Event::Render(r) => gl.draw(r.viewport(), |c, gl| {
-                    clear(BLACK, gl);
-                    for astroid in self.astroids.iter() {
-                        astroid.draw(WHITE, &ds, c.transform, gl);
-                    }
-                    self.spaceship.draw(WHITE, &ds, c.transform, gl);
-                    for bullet in self.bullets.iter() {
-                        bullet.draw(WHITE, c.transform, gl);
-                    }
-                }),
+                Event::Update(u) => self.update(u, dimensions),
+                Event::Render(r) => self.draw(r, ds, gl),
                 Event::Input(Input::Press(Button::Keyboard(k))) => {
                     self.spaceship.handle_press(k);
                     match k {

@@ -73,7 +73,7 @@ impl Spaceship {
         }
     }
 
-    pub fn draw(&mut self, color: [f32; 4], ds: &DrawState, t: [[f64; 3]; 2], gl: &mut GlGraphics) {
+    pub fn draw(&self, color: [f32; 4], ds: &DrawState, t: [[f64; 3]; 2], gl: &mut GlGraphics) {
         Polygon::new(color).draw(
             &SPACESHIP_POINTS,
             ds,
