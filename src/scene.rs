@@ -1,9 +1,13 @@
 use glutin_window::GlutinWindow;
-use graphics::DrawState;
+use graphics::{DrawState, Transformed};
+use graphics::text::Text;
 use opengl_graphics::GlGraphics;
+use opengl_graphics::glyph_cache::GlyphCache;
 use piston::event_loop::Events;
 use piston::input::{Button, Event, Input, Key, RenderArgs, UpdateArgs};
 use rand::Rng;
+use std::borrow::BorrowMut;
+use std::path::Path;
 use std::iter::repeat;
 
 use actors::{Astroid, Bullet, Spaceship};
@@ -86,6 +90,31 @@ impl Scene for MainScene {
                 },
                 Event::Input(Input::Release(Button::Keyboard(k))) => {
                     self.spaceship.handle_release(k);
+                },
+                _ => (),
+            }
+        }
+        return None;
+    }
+}
+
+
+struct GameOverScene {
+    end_game: Box<MainScene>
+}
+
+impl Scene for GameOverScene {
+    fn events(&mut self, window: Box<GlutinWindow>, gl: &mut GlGraphics, (x_max, y_max): (f64, f64)) -> Option<Box<Scene>> {
+        let ds = DrawState::new();
+        let game_over_text = Text::new(20);
+        let mut character_cache: Box<GlyphCache> = Box::new(GlyphCache::new(Path::new("/usr/share/fonts/75dpi/fonts.alias")).unwrap());
+        for e in window.events() {
+            match e {
+                Event::Render(r) => {
+                    self.end_game.draw(r, ds, gl);
+                    gl.draw(r.viewport(), |c, gl| {
+                        game_over_text.draw("Game Over", character_cache.borrow_mut() as &mut GlyphCache, &ds, c.transform.trans(x_max/2.0, y_max/2.0), gl);
+                    });
                 },
                 _ => (),
             }
