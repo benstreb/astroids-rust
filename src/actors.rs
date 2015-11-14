@@ -14,6 +14,7 @@ fn to_cartesian(theta: f64, r: f64) -> (f64, f64) {
     )
 }
 
+#[derive(Clone)]
 pub struct Spaceship {
     x: f64,
     y: f64,
@@ -136,7 +137,7 @@ impl Spaceship {
     }
 }
 
-
+#[derive(Clone)]
 pub struct Bullet {
     x: f64,
     y: f64,
@@ -170,6 +171,7 @@ impl Bullet {
     }
 }
 
+#[derive(Clone)]
 pub struct Astroid {
     x: f64,
     y: f64,

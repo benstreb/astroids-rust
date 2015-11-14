@@ -6,16 +6,19 @@ use opengl_graphics::glyph_cache::GlyphCache;
 use piston::event_loop::Events;
 use piston::input::{Button, Event, Input, Key, RenderArgs, UpdateArgs};
 use rand::Rng;
+use std::cell::RefCell;
 use std::borrow::BorrowMut;
 use std::path::Path;
 use std::iter::repeat;
+use std::rc::Rc;
 
 use actors::{Astroid, Bullet, Spaceship};
 
 pub trait Scene {
-    fn events(&mut self, Box<GlutinWindow>, &mut GlGraphics, (f64, f64)) -> Option<Box<Scene>>;
+    fn events(&mut self, Rc<RefCell<GlutinWindow>>, &mut GlGraphics, (f64, f64)) -> Option<Box<Scene>>;
 }
 
+#[derive(Clone)]
 pub struct MainScene {
     spaceship: Spaceship,
     bullets: Vec<Bullet>,
@@ -46,7 +49,7 @@ impl MainScene {
         })
     }
 
-    fn update(&mut self, u: UpdateArgs, (width, height): (f64, f64)) {
+    fn update(&mut self, u: UpdateArgs, (width, height): (f64, f64)) -> Option<Box<Scene>> {
         self.spaceship.accelerate(u.dt);
         self.spaceship.turn(u.dt);
         self.spaceship.go(u.dt, width, height);
@@ -57,7 +60,7 @@ impl MainScene {
         let astroid_edges = self.astroids.iter()
             .flat_map(|astroid| astroid.edges());
         if self.spaceship.collides(astroid_edges) {
-            print!("Collided with astroid\n");
+            return Some(Box::new(GameOverScene::new(self)));
         }
         if self.spaceship.is_firing() && self.spaceship.ready_to_fire() {
             self.spaceship.fire(&mut self.bullets);
@@ -66,6 +69,7 @@ impl MainScene {
             bullet.go(u.dt, width, height);
         }
         self.bullets.retain(|b| b.is_alive());
+        return None;
     }
 }
 
@@ -73,12 +77,18 @@ const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
 impl Scene for MainScene {
-    fn events(&mut self, window: Box<GlutinWindow>, gl: &mut GlGraphics, dimensions: (f64, f64)) -> Option<Box<Scene>> {
+    fn events(&mut self, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, dimensions: (f64, f64)) -> Option<Box<Scene>> {
 
         let ds = DrawState::new();
-        for e in window.events() {
+        let ev = window.events();
+        for e in ev {
             match e {
-                Event::Update(u) => self.update(u, dimensions),
+                Event::Update(u) => {
+                    let scene_change = self.update(u, dimensions);  
+                    if scene_change.is_some() {
+                        return scene_change;
+                    }
+                },
                 Event::Render(r) => self.draw(r, ds, gl),
                 Event::Input(Input::Press(Button::Keyboard(k))) => {
                     self.spaceship.handle_press(k);
@@ -100,11 +110,19 @@ impl Scene for MainScene {
 
 
 struct GameOverScene {
-    end_game: Box<MainScene>
+    end_game: MainScene
+}
+
+impl GameOverScene {
+    fn new(end_game: &MainScene) -> GameOverScene {
+        GameOverScene {
+            end_game: end_game.clone(),
+        }
+    }
 }
 
 impl Scene for GameOverScene {
-    fn events(&mut self, window: Box<GlutinWindow>, gl: &mut GlGraphics, (x_max, y_max): (f64, f64)) -> Option<Box<Scene>> {
+    fn events(&mut self, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, (x_max, y_max): (f64, f64)) -> Option<Box<Scene>> {
         let ds = DrawState::new();
         let game_over_text = Text::new(20);
         let mut character_cache: Box<GlyphCache> = Box::new(GlyphCache::new(Path::new("/usr/share/fonts/75dpi/fonts.alias")).unwrap());
