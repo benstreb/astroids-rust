@@ -124,8 +124,8 @@ impl GameOverScene {
 impl Scene for GameOverScene {
     fn events(&mut self, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, (x_max, y_max): (f64, f64)) -> Option<Box<Scene>> {
         let ds = DrawState::new();
-        let game_over_text = Text::new(20);
-        let mut character_cache: Box<GlyphCache> = Box::new(GlyphCache::new(Path::new("/usr/share/fonts/75dpi/fonts.alias")).unwrap());
+        let game_over_text = Text::new_color(WHITE, 20);
+        let mut character_cache: Box<GlyphCache> = Box::new(GlyphCache::new(Path::new("/usr/share/fonts/TTF/DejaVuSans.ttf")).unwrap());
         for e in window.events() {
             match e {
                 Event::Render(r) => {
