@@ -17,4 +17,4 @@ pistoncore-glutin_window = '*'
 piston2d-opengl_graphics = '*'
 image = '*'
 rand = '*'
-
+num = { version = '*', features = ["rational"] }
