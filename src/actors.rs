@@ -4,6 +4,8 @@ use graphics::line::Line;
 use opengl_graphics::GlGraphics;
 use piston::input::Key;
 use rand::Rng;
+use rand::distributions::{Range, IndependentSample};
+use rand::distributions::range::SampleRange;
 use std::f64::consts::PI;
 use intersect::lines_intersect;
 
@@ -12,6 +14,10 @@ fn to_cartesian(theta: f64, r: f64) -> (f64, f64) {
         theta.sin()*r,
         -theta.cos()*r,
     )
+}
+
+fn random<T: SampleRange + PartialOrd>(low: T, high: T, mut rng: &mut Rng) -> T {
+    return Range::new(low, high).ind_sample(&mut rng);
 }
 
 #[derive(Clone)]
@@ -181,14 +187,15 @@ pub struct Astroid {
 }
 
 impl Astroid {
-    pub fn new<R: Rng>(rng: &mut R) -> Astroid {
-        let radius = (rng.gen_range(1, 3)*5) as f64;
+
+    pub fn new(mut rng: &mut Rng) -> Astroid {
+        let radius = (random(1, 3, &mut rng)*5) as f64;
         return Astroid {
-            x: rng.gen_range(0.0, 100.0),
-            y: rng.gen_range(0.0, 100.0),
-            v: rng.gen_range(40.0, 60.0),
-            theta: rng.gen_range(0.0, 2.0*PI),
-            border: Astroid::create_border(rng, radius),
+            x: random(0.0, 100.0, &mut rng),
+            y: random(0.0, 100.0, &mut rng),
+            v: random(40.0, 60.0, &mut rng),
+            theta: random(0.0, 2.0*PI, &mut rng),
+            border: Astroid::create_border(&mut rng, radius),
         }
     }
 
@@ -204,13 +211,13 @@ impl Astroid {
         self.y = (self.y - self.theta.cos()*self.v*dt + y_max) % y_max;
     }
 
-    pub fn create_border<R: Rng>(rng: &mut R, radius: f64) -> Vec<[f64; 4]> {
+    pub fn create_border(mut rng: &mut Rng, radius: f64) -> Vec<[f64; 4]> {
         let spread = radius/5.0;
-        let point_count = rng.gen_range(8, 12);
+        let point_count = random(8, 12, &mut rng);
         let mut points = Vec::with_capacity(point_count);
-        let theta_0 = rng.gen_range(0.0, 2.0*PI);
+        let theta_0 = random(0.0, 2.0*PI, &mut rng);
         for theta in (1..point_count+1).map(|i| theta_0 + 2.0*PI*i as f64/point_count as f64) {
-            let distance = radius + rng.gen_range(-spread, spread);
+            let distance = radius + random(-spread, spread, &mut rng);
             points.push(to_cartesian(theta, distance));
         };
         let point = points[0];

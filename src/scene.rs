@@ -15,7 +15,7 @@ use std::rc::Rc;
 use actors::{Astroid, Bullet, Spaceship};
 
 pub trait Scene {
-    fn events(&mut self, Rc<RefCell<GlutinWindow>>, &mut GlGraphics, (f64, f64)) -> Option<Box<Scene>>;
+    fn events(&mut self, &mut Rng, Rc<RefCell<GlutinWindow>>, &mut GlGraphics, (f64, f64)) -> Option<Box<Scene>>;
 }
 
 #[derive(Clone)]
@@ -26,7 +26,7 @@ pub struct MainScene {
 }
 
 impl MainScene {
-    pub fn new<R: Rng>(rng: &mut R) -> MainScene {
+    pub fn new(rng: &mut Rng) -> MainScene {
         return MainScene{
             spaceship: Spaceship::new(),
             bullets: Vec::new(),
@@ -77,7 +77,7 @@ const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
 impl Scene for MainScene {
-    fn events(&mut self, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, dimensions: (f64, f64)) -> Option<Box<Scene>> {
+    fn events(&mut self, _: &mut Rng, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, dimensions: (f64, f64)) -> Option<Box<Scene>> {
 
         let ds = DrawState::new();
         let ev = window.events();
@@ -122,7 +122,7 @@ impl GameOverScene {
 }
 
 impl Scene for GameOverScene {
-    fn events(&mut self, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, (x_max, y_max): (f64, f64)) -> Option<Box<Scene>> {
+    fn events(&mut self, rng: &mut Rng, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, (x_max, y_max): (f64, f64)) -> Option<Box<Scene>> {
         let ds = DrawState::new();
         let game_over_text = Text::new_color(WHITE, 20);
         let mut character_cache: Box<GlyphCache> = Box::new(GlyphCache::new(Path::new("/usr/share/fonts/TTF/DejaVuSans.ttf")).unwrap());
@@ -134,6 +134,7 @@ impl Scene for GameOverScene {
                         game_over_text.draw("Game Over", character_cache.borrow_mut() as &mut GlyphCache, &ds, c.transform.trans(x_max/2.0, y_max/2.0), gl);
                     });
                 },
+                Event::Input(Input::Press(Button::Keyboard(Key::Space))) => return Some(Box::new(MainScene::new(rng))),
                 _ => (),
             }
         }
