@@ -134,7 +134,11 @@ impl Scene for GameOverScene {
                         game_over_text.draw("Game Over", character_cache.borrow_mut() as &mut GlyphCache, &ds, c.transform.trans(x_max/2.0, y_max/2.0), gl);
                     });
                 },
-                Event::Input(Input::Press(Button::Keyboard(Key::Space))) => return Some(Box::new(MainScene::new(rng))),
+                Event::Input(Input::Press(k)) => match k {
+                    Button::Keyboard(Key::Space) => return Some(Box::new(MainScene::new(rng))),
+                    Button::Keyboard(Key::Q) => return None,
+                    _ => (),
+                },
                 _ => (),
             }
         }
