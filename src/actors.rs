@@ -1,6 +1,7 @@
 use graphics::{DrawState, Transformed, rectangle};
 use graphics::polygon::Polygon;
 use graphics::line::Line;
+use graphics::math::{transform_pos, rotate_radians};
 use opengl_graphics::GlGraphics;
 use piston::input::Key;
 use rand::Rng;
@@ -129,16 +130,23 @@ impl Spaceship {
     }
 
     pub fn edges(&self) -> Vec<[f64; 4]> {
-        return SPACESHIP_POINTS.iter()
-            .zip(SPACESHIP_POINTS.iter().cycle().skip(1)).map(|(p1, p2)| {
+        let rotation_matrix = rotate_radians(self.theta);
+        let points: Vec<[f64; 2]> = SPACESHIP_POINTS.iter().map(|p| {
+            transform_pos(rotation_matrix, *p)
+        }).collect();
+        return points.iter()
+            .zip(points.iter().cycle().skip(1)).map(|(p1, p2)| {
                 [p1[0] + self.x, p1[1] + self.y, p2[0] + self.x, p2[1] + self.y]
             })
             .collect();
     }
 
-    pub fn collides<I: Iterator<Item=[f64; 4]>>(&self, mut edges: I) -> bool {
+    pub fn collides<I: Iterator<Item=[f64; 4]>>(&self, edges: I) -> bool {
+        let edges_vec: Vec<[f64; 4]> = edges.collect();
         return self.edges().iter().any(|edge| {
-            edges.any(|other_edge| lines_intersect(*edge, other_edge))
+            edges_vec.iter().any(|other_edge| {
+                lines_intersect(*edge, *other_edge)
+            })
         });
     }
 }
