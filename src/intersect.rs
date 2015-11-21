@@ -1,13 +1,13 @@
 use std::ops::{Sub, Div};
 
 #[derive(Copy, Clone)]
-struct Point {
+pub struct Point {
     x: f64,
     y: f64,
 }
 
 impl Point {
-    fn new(x: f64, y: f64) -> Self {
+    pub fn new(x: f64, y: f64) -> Self {
         Point {
             x: x,
             y: y,
@@ -109,3 +109,15 @@ fn test_lines_intersect() {
     // One line's point touches the other line
     assert!(lines_intersect(line, [0.0, 2.0, 2.0, 0.0]));
 }
+
+fn ray(point: Point) -> [f64; 4] {
+    let Point{x, y} = point;
+    return [-100000.0, y, x, y];
+}
+
+fn point_in<I: Iterator<Item=[f64; 4]>>(point: Point, edges: I) -> bool {
+    let r = ray(point);
+    return edges.fold(false, |inside, edge|
+        inside ^ lines_intersect(r, edge)
+    ); 
+} 
