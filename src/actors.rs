@@ -8,7 +8,7 @@ use rand::Rng;
 use rand::distributions::{Range, IndependentSample};
 use rand::distributions::range::SampleRange;
 use std::f64::consts::PI;
-use intersect::{Point, lines_intersect};
+use intersect::{Point, lines_intersect, point_in};
 
 fn to_cartesian(theta: f64, r: f64) -> (f64, f64) {
     return (
@@ -186,6 +186,10 @@ impl Bullet {
     
     pub fn coords(&self) -> Point {
         return Point::new(self.x, self.y);
+    }
+
+    pub fn collides(&self, astroid: Astroid) -> bool {
+        return point_in(self.coords(), astroid.edges().iter().cloned());
     }
 }
 

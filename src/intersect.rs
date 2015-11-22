@@ -115,7 +115,7 @@ fn ray(point: Point) -> [f64; 4] {
     return [-100000.0, y, x, y];
 }
 
-fn point_in<I: Iterator<Item=[f64; 4]>>(point: Point, edges: I) -> bool {
+pub fn point_in<I: Iterator<Item=[f64; 4]>>(point: Point, edges: I) -> bool {
     let r = ray(point);
     return edges.fold(false, |inside, edge|
         inside ^ lines_intersect(r, edge)
