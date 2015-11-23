@@ -120,4 +120,25 @@ pub fn point_in<I: Iterator<Item=[f64; 4]>>(point: Point, edges: I) -> bool {
     return edges.fold(false, |inside, edge|
         inside ^ lines_intersect(r, edge)
     ); 
-} 
+}
+
+#[cfg(test)]
+#[test]
+fn test_point_in() {
+    let box_points = vec![
+        [-1.0, 0.0, 0.0, 1.0],
+        [0.0, 1.0, 1.0, 0.0],
+        [1.0, 0.0, 0.0, -1.0],
+        [0.0, -1.0, -1.0, 0.0],
+    ];
+    let points = || box_points.iter().cloned();
+    // Point outside the box
+    assert!(!point_in(Point::new(-2.0, 0.0), points()));
+    assert!(!point_in(Point::new(2.0, 0.0), points()));
+    // Point inside the box
+    assert!(point_in(Point::new(0.0, 0.0), points()));
+    // Point touching the box
+    assert!(point_in(Point::new(-1.0, 0.0), points()));
+    assert!(point_in(Point::new(1.0, 0.0), points()));
+    assert!(point_in(Point::new(-0.5, -0.5), points()));
+}
