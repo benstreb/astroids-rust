@@ -188,7 +188,7 @@ impl Bullet {
         return Point::new(self.x, self.y);
     }
 
-    pub fn collides(&self, astroid: Astroid) -> bool {
+    pub fn collides(&self, astroid: &Astroid) -> bool {
         return point_in(self.coords(), astroid.edges().iter().cloned());
     }
 }

@@ -57,16 +57,25 @@ impl MainScene {
         for ref mut astroid in self.astroids.iter_mut() {
             astroid.go(u.dt, width, height);
         }
-        let astroid_edges = self.astroids.iter()
-            .flat_map(|astroid| astroid.edges());
-        if self.spaceship.collides(astroid_edges) {
-            return Some(Box::new(GameOverScene::new(self)));
+        {
+            let astroid_edges = self.astroids.iter()
+                .flat_map(|astroid| astroid.edges());
+            if self.spaceship.collides(astroid_edges) {
+                return Some(Box::new(GameOverScene::new(self)));
+            }
         }
         if self.spaceship.is_firing() && self.spaceship.ready_to_fire() {
             self.spaceship.fire(&mut self.bullets);
         }
         for ref mut bullet in self.bullets.iter_mut() {
             bullet.go(u.dt, width, height);
+            self.astroids = self.astroids.iter().flat_map(|a| {
+                if bullet.collides(a) {
+                    Vec::new()
+                } else {
+                    vec![a.clone()]
+                }
+            }).collect();
         }
         self.bullets.retain(|b| b.is_alive());
         return None;
