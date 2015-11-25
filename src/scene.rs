@@ -49,7 +49,7 @@ impl MainScene {
         })
     }
 
-    fn update(&mut self, u: UpdateArgs, (width, height): (f64, f64)) -> Option<Box<Scene>> {
+    fn update(&mut self, u: UpdateArgs, rng: &mut Rng, (width, height): (f64, f64)) -> Option<Box<Scene>> {
         self.spaceship.accelerate(u.dt);
         self.spaceship.turn(u.dt);
         self.spaceship.go(u.dt, width, height);
@@ -71,7 +71,7 @@ impl MainScene {
             bullet.go(u.dt, width, height);
             self.astroids = self.astroids.iter().flat_map(|a| {
                 if bullet.collides(a) {
-                    Vec::new()
+                    a.explode(rng)
                 } else {
                     vec![a.clone()]
                 }
@@ -86,14 +86,14 @@ const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
 impl Scene for MainScene {
-    fn events(&mut self, _: &mut Rng, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, dimensions: (f64, f64)) -> Option<Box<Scene>> {
+    fn events(&mut self, rng: &mut Rng, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, dimensions: (f64, f64)) -> Option<Box<Scene>> {
 
         let ds = DrawState::new();
         let ev = window.events();
         for e in ev {
             match e {
                 Event::Update(u) => {
-                    let scene_change = self.update(u, dimensions);  
+                    let scene_change = self.update(u, rng, dimensions);
                     if scene_change.is_some() {
                         return scene_change;
                     }

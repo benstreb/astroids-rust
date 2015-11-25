@@ -199,19 +199,43 @@ pub struct Astroid {
     y: f64,
     v: f64,
     theta: f64,
+    size: i64,
     border: Vec<[f64; 4]>,
 }
 
 impl Astroid {
 
     pub fn new(mut rng: &mut Rng) -> Astroid {
-        let radius = (random(1, 3, &mut rng)*5) as f64;
+        let size = random(1, 3, &mut rng);
+        let radius = (size * 5) as f64;
         return Astroid {
             x: random(0.0, 100.0, &mut rng),
             y: random(0.0, 100.0, &mut rng),
             v: random(40.0, 60.0, &mut rng),
             theta: random(0.0, 2.0*PI, &mut rng),
+            size: size,
             border: Astroid::create_border(&mut rng, radius),
+        }
+    }
+
+    fn exploded(&self, mut rng: &mut Rng) -> Astroid {
+        let new_size = self.size - 1;
+        let radius = (new_size * 5) as f64;
+        return Astroid {
+            x: self.x + random(-5.0, 5.0, &mut rng),
+            y: self.y + random(-5.0, 5.0, &mut rng),
+            v: random(40.0, 60.0, &mut rng),
+            theta: random(0.0, 2.0*PI, &mut rng),
+            size: new_size,
+            border: Astroid::create_border(&mut rng, radius),
+        }
+    }
+
+    pub fn explode(&self, mut rng: &mut Rng) -> Vec<Astroid> {
+        if self.size <= 1 {
+            vec![]
+        } else {
+            vec![self.exploded(rng), self.exploded(rng)]
         }
     }
 
