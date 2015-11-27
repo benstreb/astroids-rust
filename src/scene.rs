@@ -67,17 +67,24 @@ impl MainScene {
         if self.spaceship.is_firing() && self.spaceship.ready_to_fire() {
             self.spaceship.fire(&mut self.bullets);
         }
-        for ref mut bullet in self.bullets.iter_mut() {
+        let mut new_bullets = Vec::with_capacity(self.bullets.len());
+        for mut bullet in self.bullets.iter_mut() {
             bullet.go(u.dt, width, height);
+            let mut collided = false;
             self.astroids = self.astroids.iter().flat_map(|a| {
                 if bullet.collides(a) {
+                    collided = true;
                     a.explode(rng)
                 } else {
                     vec![a.clone()]
                 }
             }).collect();
+            if !collided {
+                new_bullets.push(bullet.clone());
+            }
         }
-        self.bullets.retain(|b| b.is_alive());
+        new_bullets.retain(Bullet::is_alive);
+        self.bullets = new_bullets;
         return None;
     }
 }

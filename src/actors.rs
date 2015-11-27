@@ -151,7 +151,7 @@ impl Spaceship {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Bullet {
     x: f64,
     y: f64,
