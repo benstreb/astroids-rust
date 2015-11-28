@@ -26,11 +26,11 @@ pub struct MainScene {
 }
 
 impl MainScene {
-    pub fn new(rng: &mut Rng) -> MainScene {
+    pub fn new(difficulty: usize, rng: &mut Rng) -> MainScene {
         return MainScene{
             spaceship: Spaceship::new(),
             bullets: Vec::new(),
-            astroids: repeat(0).take(5).map(|_| Astroid::new(rng))
+            astroids: repeat(0).take(difficulty).map(|_| Astroid::large_new(rng))
                 .collect(),
         };
     }
@@ -151,7 +151,7 @@ impl Scene for GameOverScene {
                     });
                 },
                 Event::Input(Input::Press(k)) => match k {
-                    Button::Keyboard(Key::Space) => return Some(Box::new(MainScene::new(rng))),
+                    Button::Keyboard(Key::Space) => return Some(Box::new(MainScene::new(1, rng))),
                     Button::Keyboard(Key::Q) => return None,
                     _ => (),
                 },

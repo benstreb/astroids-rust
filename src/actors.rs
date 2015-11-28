@@ -203,10 +203,15 @@ pub struct Astroid {
     border: Vec<[f64; 4]>,
 }
 
+const ASTROID_LARGE: i64 = 3;
+
 impl Astroid {
 
-    pub fn new(mut rng: &mut Rng) -> Astroid {
-        let size = random(1, 3, &mut rng);
+    pub fn large_new(mut rng: &mut Rng) -> Astroid {
+        return Self::new(ASTROID_LARGE, rng);
+    }
+
+    pub fn new(size: i64, mut rng: &mut Rng) -> Astroid {
         let radius = (size * 5) as f64;
         return Astroid {
             x: random(0.0, 100.0, &mut rng),
