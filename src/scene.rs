@@ -20,6 +20,7 @@ pub trait Scene {
 
 #[derive(Clone)]
 pub struct MainScene {
+    difficulty: usize,
     spaceship: Spaceship,
     bullets: Vec<Bullet>,
     astroids: Vec<Astroid>,
@@ -28,6 +29,7 @@ pub struct MainScene {
 impl MainScene {
     pub fn new(difficulty: usize, rng: &mut Rng) -> MainScene {
         return MainScene{
+            difficulty: difficulty,
             spaceship: Spaceship::new(),
             bullets: Vec::new(),
             astroids: repeat(0).take(difficulty).map(|_| Astroid::large_new(rng))
@@ -85,6 +87,9 @@ impl MainScene {
         }
         new_bullets.retain(Bullet::is_alive);
         self.bullets = new_bullets;
+        if self.astroids.len() == 0 {
+            return Some(Box::new(MainScene::new(self.difficulty + 1, rng)));
+        }
         return None;
     }
 }
