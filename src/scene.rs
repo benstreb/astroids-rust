@@ -98,7 +98,7 @@ const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
 impl Scene for MainScene {
-    fn events(&mut self, rng: &mut Rng, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, dimensions: (f64, f64)) -> Option<Box<Scene>> {
+    fn events(&mut self, mut rng: &mut Rng, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, dimensions: (f64, f64)) -> Option<Box<Scene>> {
 
         let ds = DrawState::new();
         let ev = window.events();
@@ -114,7 +114,7 @@ impl Scene for MainScene {
                 Event::Input(Input::Press(Button::Keyboard(k))) => {
                     self.spaceship.handle_press(k);
                     match k {
-                        Key::R => self.spaceship = Spaceship::new(),
+                        Key::R => return Some(Box::new(MainScene::new(1, &mut rng))),
                         Key::Q => return None,
                         _ => (),
                     }
