@@ -211,11 +211,19 @@ impl Astroid {
         return Self::new(ASTROID_LARGE, rng);
     }
 
+    fn random_start(mut rng: &mut Rng) -> f64 {
+        if random(0, 2, rng) == 0 {
+            return random(0.0, 75.0, rng);
+        } else {
+            return random(125.0, 200.0, rng);
+        }
+    }
+
     pub fn new(size: i64, mut rng: &mut Rng) -> Astroid {
         let radius = (size * 5) as f64;
         return Astroid {
-            x: random(0.0, 100.0, &mut rng),
-            y: random(0.0, 100.0, &mut rng),
+            x: Astroid::random_start(&mut rng),
+            y: Astroid::random_start(&mut rng),
             v: random(40.0, 60.0, &mut rng),
             theta: random(0.0, 2.0*PI, &mut rng),
             size: size,
