@@ -156,7 +156,7 @@ impl Scene for GameOverScene {
                     });
                 },
                 Event::Input(Input::Press(k)) => match k {
-                    Button::Keyboard(Key::Space) => return Some(Box::new(MainScene::new(1, rng))),
+                    Button::Keyboard(Key::Space)|Button::Keyboard(Key::R) => return Some(Box::new(MainScene::new(1, rng))),
                     Button::Keyboard(Key::Q) => return None,
                     _ => (),
                 },
