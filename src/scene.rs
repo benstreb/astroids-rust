@@ -13,9 +13,10 @@ use std::iter::repeat;
 use std::rc::Rc;
 
 use actors::{Astroid, Bullet, Spaceship};
+use config::Config;
 
 pub trait Scene {
-    fn events(&mut self, &mut Rng, Rc<RefCell<GlutinWindow>>, &mut GlGraphics, (f64, f64)) -> Option<Box<Scene>>;
+    fn events(&mut self, &mut Rng, Rc<RefCell<GlutinWindow>>, &mut GlGraphics, &Config) -> Option<Box<Scene>>;
 }
 
 #[derive(Clone)]
@@ -51,13 +52,13 @@ impl MainScene {
         })
     }
 
-    fn update(&mut self, u: UpdateArgs, rng: &mut Rng, (width, height): (f64, f64)) -> Option<Box<Scene>> {
+    fn update(&mut self, u: UpdateArgs, rng: &mut Rng, config: &Config) -> Option<Box<Scene>> {
         self.spaceship.accelerate(u.dt);
         self.spaceship.turn(u.dt);
-        self.spaceship.go(u.dt, width, height);
+        self.spaceship.go(u.dt, config.width(), config.height());
         self.spaceship.cooldown(u.dt);
         for ref mut astroid in self.astroids.iter_mut() {
-            astroid.go(u.dt, width, height);
+            astroid.go(u.dt, config.width(), config.height());
         }
         {
             let astroid_edges = self.astroids.iter()
@@ -71,7 +72,7 @@ impl MainScene {
         }
         let mut new_bullets = Vec::with_capacity(self.bullets.len());
         for mut bullet in self.bullets.iter_mut() {
-            bullet.go(u.dt, width, height);
+            bullet.go(u.dt, config.width(), config.height());
             let mut collided = false;
             self.astroids = self.astroids.iter().flat_map(|a| {
                 if bullet.collides(a) {
@@ -98,14 +99,14 @@ const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
 impl Scene for MainScene {
-    fn events(&mut self, mut rng: &mut Rng, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, dimensions: (f64, f64)) -> Option<Box<Scene>> {
+    fn events(&mut self, mut rng: &mut Rng, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, config: &Config) -> Option<Box<Scene>> {
 
         let ds = DrawState::new();
         let ev = window.events();
         for e in ev {
             match e {
                 Event::Update(u) => {
-                    let scene_change = self.update(u, rng, dimensions);
+                    let scene_change = self.update(u, rng, config);
                     if scene_change.is_some() {
                         return scene_change;
                     }
@@ -143,7 +144,7 @@ impl GameOverScene {
 }
 
 impl Scene for GameOverScene {
-    fn events(&mut self, rng: &mut Rng, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, (x_max, y_max): (f64, f64)) -> Option<Box<Scene>> {
+    fn events(&mut self, rng: &mut Rng, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, config: &Config) -> Option<Box<Scene>> {
         let ds = DrawState::new();
         let game_over_text = Text::new_color(WHITE, 20);
         let mut character_cache: Box<GlyphCache> = Box::new(GlyphCache::new(Path::new("/usr/share/fonts/TTF/DejaVuSans.ttf")).unwrap());
@@ -152,7 +153,7 @@ impl Scene for GameOverScene {
                 Event::Render(r) => {
                     self.end_game.draw(r, ds, gl);
                     gl.draw(r.viewport(), |c, gl| {
-                        game_over_text.draw("Game Over", character_cache.borrow_mut() as &mut GlyphCache, &ds, c.transform.trans(x_max/2.0, y_max/2.0), gl);
+                        game_over_text.draw("Game Over", character_cache.borrow_mut() as &mut GlyphCache, &ds, c.transform.trans(config.width()/2.0, config.height()/2.0), gl);
                     });
                 },
                 Event::Input(Input::Press(k)) => match k {

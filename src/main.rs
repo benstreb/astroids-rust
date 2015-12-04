@@ -34,7 +34,7 @@ fn main() {
     let mut rng = rand::thread_rng();
 
     let mut scene: Box<Scene> = Box::new(MainScene::new(1, &mut rng));
-    while let Some(new_scene) = scene.events(&mut rng, window.clone(), &mut gl, (config.width(), config.height())) {
+    while let Some(new_scene) = scene.events(&mut rng, window.clone(), &mut gl, &config) {
         scene = new_scene;
     }
 }
