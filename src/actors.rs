@@ -208,24 +208,23 @@ pub struct Astroid {
 const ASTROID_LARGE: i64 = 3;
 
 impl Astroid {
-
-    pub fn large_new(mut rng: &mut Rng) -> Astroid {
-        return Self::new(ASTROID_LARGE, rng);
+    pub fn large_new(config: &Config, mut rng: &mut Rng) -> Astroid {
+        return Self::new(ASTROID_LARGE, config, rng);
     }
 
-    fn random_start(mut rng: &mut Rng) -> f64 {
+    fn random_start(max: f64, gap: f64, mut rng: &mut Rng) -> f64 {
         if random(0, 2, rng) == 0 {
-            return random(0.0, 75.0, rng);
+            return random(0.0, max/2.0 - gap, rng);
         } else {
-            return random(125.0, 200.0, rng);
+            return random(max/2.0 + gap, max, rng);
         }
     }
 
-    pub fn new(size: i64, mut rng: &mut Rng) -> Astroid {
+    pub fn new(size: i64, config: &Config, mut rng: &mut Rng) -> Astroid {
         let radius = (size * 5) as f64;
         return Astroid {
-            x: Astroid::random_start(&mut rng),
-            y: Astroid::random_start(&mut rng),
+            x: Astroid::random_start(config.width(), config.astroid_gap_distance(), &mut rng),
+            y: Astroid::random_start(config.height(), config.astroid_gap_distance(), &mut rng),
             v: random(40.0, 60.0, &mut rng),
             theta: random(0.0, 2.0*PI, &mut rng),
             size: size,

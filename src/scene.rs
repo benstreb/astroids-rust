@@ -33,7 +33,7 @@ impl MainScene {
             difficulty: difficulty,
             spaceship: Spaceship::new(config),
             bullets: Vec::new(),
-            astroids: repeat(0).take(difficulty).map(|_| Astroid::large_new(rng))
+            astroids: repeat(0).take(difficulty).map(|_| Astroid::large_new(config, rng))
                 .collect(),
         };
     }
