@@ -28,10 +28,10 @@ pub struct MainScene {
 }
 
 impl MainScene {
-    pub fn new(difficulty: usize, rng: &mut Rng) -> MainScene {
+    pub fn new(difficulty: usize, config: &Config, rng: &mut Rng) -> MainScene {
         return MainScene{
             difficulty: difficulty,
-            spaceship: Spaceship::new(),
+            spaceship: Spaceship::new(config),
             bullets: Vec::new(),
             astroids: repeat(0).take(difficulty).map(|_| Astroid::large_new(rng))
                 .collect(),
@@ -89,7 +89,7 @@ impl MainScene {
         new_bullets.retain(Bullet::is_alive);
         self.bullets = new_bullets;
         if self.astroids.len() == 0 {
-            return Some(Box::new(MainScene::new(self.difficulty + 1, rng)));
+            return Some(Box::new(MainScene::new(self.difficulty + 1, config, rng)));
         }
         return None;
     }
@@ -115,7 +115,7 @@ impl Scene for MainScene {
                 Event::Input(Input::Press(Button::Keyboard(k))) => {
                     self.spaceship.handle_press(k);
                     match k {
-                        Key::R => return Some(Box::new(MainScene::new(1, &mut rng))),
+                        Key::R => return Some(Box::new(MainScene::new(1, config, &mut rng))),
                         Key::Q => return None,
                         _ => (),
                     }
@@ -157,7 +157,7 @@ impl Scene for GameOverScene {
                     });
                 },
                 Event::Input(Input::Press(k)) => match k {
-                    Button::Keyboard(Key::Space)|Button::Keyboard(Key::R) => return Some(Box::new(MainScene::new(1, rng))),
+                    Button::Keyboard(Key::Space)|Button::Keyboard(Key::R) => return Some(Box::new(MainScene::new(1, config, rng))),
                     Button::Keyboard(Key::Q) => return None,
                     _ => (),
                 },

@@ -10,6 +10,8 @@ use rand::distributions::range::SampleRange;
 use std::f64::consts::PI;
 use intersect::{Point, lines_intersect, point_in};
 
+use config::Config;
+
 fn to_cartesian(theta: f64, r: f64) -> (f64, f64) {
     return (
         theta.sin()*r,
@@ -43,10 +45,10 @@ const SPACESHIP_POINTS: [[f64; 2]; 3] = [
 ];
 
 impl Spaceship {
-    pub fn new() -> Spaceship {
+    pub fn new(config: &Config) -> Spaceship {
         return Spaceship{
-            x: 100.0,
-            y: 100.0,
+            x: config.width()/2.0,
+            y: config.height()/2.0,
             v: 0.0,
             v_theta: 0.0,
             theta: 0.0,
