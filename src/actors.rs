@@ -5,7 +5,7 @@ use graphics::math::{transform_pos, rotate_radians};
 use opengl_graphics::GlGraphics;
 use piston::input::Key;
 use rand::Rng;
-use rand::distributions::{Range, IndependentSample};
+use rand::distributions::{Range, IndependentSample, Normal};
 use rand::distributions::range::SampleRange;
 use std::f64::consts::PI;
 use intersect::{Point, lines_intersect, point_in};
@@ -235,11 +235,14 @@ impl Astroid {
     fn exploded(&self, mut rng: &mut Rng) -> Astroid {
         let new_size = self.size - 1;
         let radius = (new_size * 5) as f64;
+        let theta_range = Normal::new(0.0, PI/2.0);
+        let d_theta = theta_range.ind_sample(&mut rng);
+        let theta = self.theta + d_theta;
         return Astroid {
             x: self.x + random(-5.0, 5.0, &mut rng),
             y: self.y + random(-5.0, 5.0, &mut rng),
             v: random(40.0, 60.0, &mut rng),
-            theta: random(0.0, 2.0*PI, &mut rng),
+            theta: theta,
             size: new_size,
             border: Astroid::create_border(&mut rng, radius),
         }
