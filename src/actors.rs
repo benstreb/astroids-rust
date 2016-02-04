@@ -293,3 +293,25 @@ impl Astroid {
         ).collect();
     }
 }
+
+#[derive(Clone)]
+pub struct Particle {
+    x: f64,
+    y: f64,
+    r: f64,
+    theta: f64,
+    d: i64,
+}
+
+impl Particle {
+    pub fn new(x: f64, y: f64, rng: &mut Rng) {
+        Particle {
+            x: x,
+            y: y,
+            r: 1.0,
+            theta: random(0, 2*PI, rng),
+            d: 0.0,
+        }
+    }
+}
+
