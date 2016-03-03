@@ -124,6 +124,7 @@ pub fn point_in<I: Iterator<Item=[f64; 4]>>(point: Point, edges: I) -> bool {
 
 #[cfg(test)]
 #[test]
+#[ignore]
 fn test_point_in() {
     let box_points = vec![
         [-1.0, 0.0, 0.0, 1.0],
