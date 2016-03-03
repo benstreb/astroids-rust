@@ -23,6 +23,10 @@ fn random<T: SampleRange + PartialOrd>(low: T, high: T, mut rng: &mut Rng) -> T 
     return Range::new(low, high).ind_sample(&mut rng);
 }
 
+pub fn wrapped_add(a: f64, b: f64, bound: f64) -> f64 {
+    (a + b + bound) % bound
+}
+
 #[derive(Clone)]
 pub struct Spaceship {
     x: f64,
@@ -315,3 +319,14 @@ impl Particle {
     }
 }
 
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_wrapped_add() {
+        assert_eq!(wrapped_add(1.0, 1.0, 10.0), 2.0);
+        assert_eq!(wrapped_add(1.0, 10.0, 10.0), 1.0);
+        assert_eq!(wrapped_add(1.0, -5.0, 10.0), 6.0);
+    }
+}
