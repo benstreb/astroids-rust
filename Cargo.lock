@@ -2,6 +2,7 @@
 name = "astroids-rust"
 version = "0.0.0"
 dependencies = [
+ "expectest 0.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "image 0.5.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "num 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)",
  "piston 0.15.1 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -127,6 +128,14 @@ dependencies = [
 [[package]]
 name = "enum_primitive"
 version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+dependencies = [
+ "num 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "expectest"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "num 0.1.27 (registry+https://github.com/rust-lang/crates.io-index)",
