@@ -16,7 +16,12 @@ use actors::{Astroid, Bullet, Spaceship};
 use config::Config;
 
 pub trait Scene {
-    fn events(&mut self, &mut Rng, Rc<RefCell<GlutinWindow>>, &mut GlGraphics, &Config) -> Option<Box<Scene>>;
+    fn events(&mut self,
+              &mut Rng,
+              Rc<RefCell<GlutinWindow>>,
+              &mut GlGraphics,
+              &Config)
+              -> Option<Box<Scene>>;
 }
 
 #[derive(Clone)]
@@ -29,12 +34,14 @@ pub struct MainScene {
 
 impl MainScene {
     pub fn new(difficulty: usize, config: &Config, rng: &mut Rng) -> MainScene {
-        return MainScene{
+        return MainScene {
             difficulty: difficulty,
             spaceship: Spaceship::new(config),
             bullets: Vec::new(),
-            astroids: repeat(0).take(difficulty).map(|_| Astroid::large_new(config, rng))
-                .collect(),
+            astroids: repeat(0)
+                          .take(difficulty)
+                          .map(|_| Astroid::large_new(config, rng))
+                          .collect(),
         };
     }
 
@@ -61,8 +68,9 @@ impl MainScene {
             astroid.go(u.dt, config.width(), config.height());
         }
         {
-            let astroid_edges = self.astroids.iter()
-                .flat_map(|astroid| astroid.edges());
+            let astroid_edges = self.astroids
+                                    .iter()
+                                    .flat_map(|astroid| astroid.edges());
             if self.spaceship.collides(astroid_edges) {
                 return Some(Box::new(GameOverScene::new(self)));
             }
@@ -74,14 +82,17 @@ impl MainScene {
         for mut bullet in self.bullets.iter_mut() {
             bullet.go(u.dt, config.width(), config.height());
             let mut collided = false;
-            self.astroids = self.astroids.iter().flat_map(|a| {
-                if bullet.collides(a) {
-                    collided = true;
-                    a.explode(rng)
-                } else {
-                    vec![a.clone()]
-                }
-            }).collect();
+            self.astroids = self.astroids
+                                .iter()
+                                .flat_map(|a| {
+                                    if bullet.collides(a) {
+                                        collided = true;
+                                        a.explode(rng)
+                                    } else {
+                                        vec![a.clone()]
+                                    }
+                                })
+                                .collect();
             if !collided {
                 new_bullets.push(bullet.clone());
             }
@@ -99,7 +110,12 @@ const WHITE: [f32; 4] = [1.0, 1.0, 1.0, 1.0];
 const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 
 impl Scene for MainScene {
-    fn events(&mut self, mut rng: &mut Rng, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, config: &Config) -> Option<Box<Scene>> {
+    fn events(&mut self,
+              mut rng: &mut Rng,
+              window: Rc<RefCell<GlutinWindow>>,
+              gl: &mut GlGraphics,
+              config: &Config)
+              -> Option<Box<Scene>> {
 
         let ds = DrawState::new();
         let ev = window.events();
@@ -110,7 +126,7 @@ impl Scene for MainScene {
                     if scene_change.is_some() {
                         return scene_change;
                     }
-                },
+                }
                 Event::Render(r) => self.draw(r, ds, gl),
                 Event::Input(Input::Press(Button::Keyboard(k))) => {
                     self.spaceship.handle_press(k);
@@ -119,10 +135,10 @@ impl Scene for MainScene {
                         Key::Q => return None,
                         _ => (),
                     }
-                },
+                }
                 Event::Input(Input::Release(Button::Keyboard(k))) => {
                     self.spaceship.handle_release(k);
-                },
+                }
                 _ => (),
             }
         }
@@ -132,35 +148,48 @@ impl Scene for MainScene {
 
 
 struct GameOverScene {
-    end_game: MainScene
+    end_game: MainScene,
 }
 
 impl GameOverScene {
     fn new(end_game: &MainScene) -> GameOverScene {
-        GameOverScene {
-            end_game: end_game.clone(),
-        }
+        GameOverScene { end_game: end_game.clone() }
     }
 }
 
 impl Scene for GameOverScene {
-    fn events(&mut self, rng: &mut Rng, window: Rc<RefCell<GlutinWindow>>, gl: &mut GlGraphics, config: &Config) -> Option<Box<Scene>> {
+    fn events(&mut self,
+              rng: &mut Rng,
+              window: Rc<RefCell<GlutinWindow>>,
+              gl: &mut GlGraphics,
+              config: &Config)
+              -> Option<Box<Scene>> {
         let ds = DrawState::new();
         let game_over_text = Text::new_color(WHITE, 20);
-        let mut character_cache: Box<GlyphCache> = Box::new(GlyphCache::new(Path::new("/usr/share/fonts/TTF/DejaVuSans.ttf")).unwrap());
+        let font_path = Path::new("/usr/share/fonts/TTF/DejaVuSans.ttf");
+        let mut character_cache: Box<GlyphCache> = Box::new(GlyphCache::new(font_path).unwrap());
         for e in window.events() {
             match e {
                 Event::Render(r) => {
                     self.end_game.draw(r, ds, gl);
                     gl.draw(r.viewport(), |c, gl| {
-                        game_over_text.draw("Game Over", character_cache.borrow_mut() as &mut GlyphCache, &ds, c.transform.trans(config.width()/2.0, config.height()/2.0), gl);
+                        game_over_text.draw("Game Over",
+                                            character_cache.borrow_mut() as &mut GlyphCache,
+                                            &ds,
+                                            c.transform
+                                             .trans(config.width() / 2.0, config.height() / 2.0),
+                                            gl);
                     });
-                },
-                Event::Input(Input::Press(k)) => match k {
-                    Button::Keyboard(Key::Space)|Button::Keyboard(Key::R) => return Some(Box::new(MainScene::new(1, config, rng))),
-                    Button::Keyboard(Key::Q) => return None,
-                    _ => (),
-                },
+                }
+                Event::Input(Input::Press(k)) => {
+                    match k {
+                        Button::Keyboard(Key::Space) | Button::Keyboard(Key::R) => {
+                            return Some(Box::new(MainScene::new(1, config, rng)))
+                        }
+                        Button::Keyboard(Key::Q) => return None,
+                        _ => (),
+                    }
+                }
                 _ => (),
             }
         }

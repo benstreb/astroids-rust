@@ -13,10 +13,7 @@ use intersect::{Point, lines_intersect, point_in};
 use config::Config;
 
 pub fn to_cartesian(theta: f64, r: f64) -> (f64, f64) {
-    return (
-        theta.sin()*r,
-        -theta.cos()*r,
-    )
+    return (theta.sin() * r, -theta.cos() * r);
 }
 
 fn random<T: SampleRange + PartialOrd>(low: T, high: T, mut rng: &mut Rng) -> T {
@@ -42,17 +39,13 @@ pub struct Spaceship {
     cooldown: f64,
 }
 
-const SPACESHIP_POINTS: [[f64; 2]; 3] = [
-    [5.0, 7.0],
-    [-5.0, 7.0],
-    [0.0, -13.0],
-];
+const SPACESHIP_POINTS: [[f64; 2]; 3] = [[5.0, 7.0], [-5.0, 7.0], [0.0, -13.0]];
 
 impl Spaceship {
     pub fn new(config: &Config) -> Spaceship {
-        return Spaceship{
-            x: config.width()/2.0,
-            y: config.height()/2.0,
+        return Spaceship {
+            x: config.width() / 2.0,
+            y: config.height() / 2.0,
             v: 0.0,
             v_theta: 0.0,
             theta: 0.0,
@@ -88,34 +81,31 @@ impl Spaceship {
     }
 
     pub fn draw(&self, color: [f32; 4], ds: &DrawState, t: [[f64; 3]; 2], gl: &mut GlGraphics) {
-        Polygon::new(color).draw(
-            &SPACESHIP_POINTS,
-            ds,
-            t
-                .trans(self.x, self.y)
-                .rot_rad(self.theta),
-            gl,
-        );
+        Polygon::new(color).draw(&SPACESHIP_POINTS,
+                                 ds,
+                                 t.trans(self.x, self.y)
+                                  .rot_rad(self.theta),
+                                 gl);
     }
 
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
-        let (dx, dy) = to_cartesian(self.v_theta, self.v*dt);
+        let (dx, dy) = to_cartesian(self.v_theta, self.v * dt);
         self.x = (self.x + dx + x_max) % x_max;
         self.y = (self.y + dy + y_max) % y_max;
     }
 
     pub fn accelerate(&mut self, dt: f64) {
-        let net_accel = (self.accel - self.reverse)*dt*100.0;
+        let net_accel = (self.accel - self.reverse) * dt * 100.0;
         let (dx, dy) = to_cartesian(self.v_theta, self.v);
         let (ddx, ddy) = to_cartesian(self.theta, net_accel);
         let new_dx = dx + ddx;
         let new_dy = dy + ddy;
-        self.v = (new_dx*new_dx+new_dy*new_dy).sqrt().min(200.0).max(-200.0);
+        self.v = (new_dx * new_dx + new_dy * new_dy).sqrt().min(200.0).max(-200.0);
         self.v_theta = new_dx.atan2(-new_dy);
     }
 
     pub fn turn(&mut self, dt: f64) {
-        self.theta += (self.right - self.left)*dt*100.0;
+        self.theta += (self.right - self.left) * dt * 100.0;
     }
 
     pub fn cooldown(&mut self, dt: f64) {
@@ -137,22 +127,21 @@ impl Spaceship {
 
     pub fn edges(&self) -> Vec<[f64; 4]> {
         let rotation_matrix = rotate_radians(self.theta);
-        let points: Vec<[f64; 2]> = SPACESHIP_POINTS.iter().map(|p| {
-            transform_pos(rotation_matrix, *p)
-        }).collect();
+        let points: Vec<[f64; 2]> = SPACESHIP_POINTS.iter()
+                                                    .map(|p| transform_pos(rotation_matrix, *p))
+                                                    .collect();
         return points.iter()
-            .zip(points.iter().cycle().skip(1)).map(|(p1, p2)| {
-                [p1[0] + self.x, p1[1] + self.y, p2[0] + self.x, p2[1] + self.y]
-            })
-            .collect();
+                     .zip(points.iter().cycle().skip(1))
+                     .map(|(p1, p2)| {
+                         [p1[0] + self.x, p1[1] + self.y, p2[0] + self.x, p2[1] + self.y]
+                     })
+                     .collect();
     }
 
-    pub fn collides<I: Iterator<Item=[f64; 4]>>(&self, edges: I) -> bool {
+    pub fn collides<I: Iterator<Item = [f64; 4]>>(&self, edges: I) -> bool {
         let edges_vec: Vec<[f64; 4]> = edges.collect();
         return self.edges().iter().any(|edge| {
-            edges_vec.iter().any(|other_edge| {
-                lines_intersect(*edge, *other_edge)
-            })
+            edges_vec.iter().any(|other_edge| lines_intersect(*edge, *other_edge))
         });
     }
 }
@@ -167,7 +156,7 @@ pub struct Bullet {
 
 impl Bullet {
     fn new(x: f64, y: f64, theta: f64) -> Bullet {
-        return Bullet{
+        return Bullet {
             x: x,
             y: y,
             theta: theta,
@@ -181,15 +170,15 @@ impl Bullet {
 
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
         let v = 100.0;
-        self.x = (self.x + self.theta.sin()*v*dt + x_max) % x_max;
-        self.y = (self.y - self.theta.cos()*v*dt + y_max) % y_max;
-        self.distance += v*dt;
+        self.x = (self.x + self.theta.sin() * v * dt + x_max) % x_max;
+        self.y = (self.y - self.theta.cos() * v * dt + y_max) % y_max;
+        self.distance += v * dt;
     }
 
     pub fn is_alive(&self) -> bool {
         return self.distance < 100.0;
     }
-    
+
     pub fn coords(&self) -> Point {
         return Point::new(self.x, self.y);
     }
@@ -218,9 +207,9 @@ impl Astroid {
 
     fn random_start(max: f64, gap: f64, mut rng: &mut Rng) -> f64 {
         if random(0, 2, rng) == 0 {
-            return random(0.0, max/2.0 - gap, rng);
+            return random(0.0, max / 2.0 - gap, rng);
         } else {
-            return random(max/2.0 + gap, max, rng);
+            return random(max / 2.0 + gap, max, rng);
         }
     }
 
@@ -230,16 +219,16 @@ impl Astroid {
             x: Astroid::random_start(config.width(), config.astroid_gap_distance(), &mut rng),
             y: Astroid::random_start(config.height(), config.astroid_gap_distance(), &mut rng),
             v: random(40.0, 60.0, &mut rng),
-            theta: random(0.0, 2.0*PI, &mut rng),
+            theta: random(0.0, 2.0 * PI, &mut rng),
             size: size,
             border: Astroid::create_border(&mut rng, radius),
-        }
+        };
     }
 
     fn exploded(&self, mut rng: &mut Rng) -> Astroid {
         let new_size = self.size - 1;
         let radius = (new_size * 5) as f64;
-        let theta_range = Normal::new(0.0, PI/2.0);
+        let theta_range = Normal::new(0.0, PI / 2.0);
         let d_theta = theta_range.ind_sample(&mut rng);
         let theta = self.theta + d_theta;
         return Astroid {
@@ -249,7 +238,7 @@ impl Astroid {
             theta: theta,
             size: new_size,
             border: Astroid::create_border(&mut rng, radius),
-        }
+        };
     }
 
     pub fn explode(&self, mut rng: &mut Rng) -> Vec<Astroid> {
@@ -268,19 +257,20 @@ impl Astroid {
     }
 
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
-        self.x = (self.x + self.theta.sin()*self.v*dt + x_max) % x_max;
-        self.y = (self.y - self.theta.cos()*self.v*dt + y_max) % y_max;
+        self.x = (self.x + self.theta.sin() * self.v * dt + x_max) % x_max;
+        self.y = (self.y - self.theta.cos() * self.v * dt + y_max) % y_max;
     }
 
     pub fn create_border(mut rng: &mut Rng, radius: f64) -> Vec<[f64; 4]> {
-        let spread = radius/5.0;
+        let spread = radius / 5.0;
         let point_count = random(8, 12, &mut rng);
         let mut points = Vec::with_capacity(point_count);
-        let theta_0 = random(0.0, 2.0*PI, &mut rng);
-        for theta in (1..point_count+1).map(|i| theta_0 + 2.0*PI*i as f64/point_count as f64) {
+        let theta_0 = random(0.0, 2.0 * PI, &mut rng);
+        let corner_i_to_theta = |i| theta_0 + 2.0 * PI * i as f64 / point_count as f64;
+        for theta in (1..point_count + 1).map(corner_i_to_theta) {
             let distance = radius + random(-spread, spread, &mut rng);
             points.push(to_cartesian(theta, distance));
-        };
+        }
         let point = points[0];
         points.push(point);
         let mut lines = Vec::with_capacity(point_count);
@@ -292,9 +282,12 @@ impl Astroid {
     }
 
     pub fn edges(&self) -> Vec<[f64; 4]> {
-        return self.border.iter().map(|edge|
-            [edge[0] + self.x, edge[1] + self.y, edge[2] + self.x, edge[3] + self.y]
-        ).collect();
+        return self.border
+                   .iter()
+                   .map(|edge| {
+                       [edge[0] + self.x, edge[1] + self.y, edge[2] + self.x, edge[3] + self.y]
+                   })
+                   .collect();
     }
 }
 
@@ -313,7 +306,7 @@ impl Particle {
             x: x,
             y: y,
             r: 1.0,
-            theta: random(0.0, 2.0*PI, rng),
+            theta: random(0.0, 2.0 * PI, rng),
             d: 0.0,
         }
     }
@@ -344,6 +337,6 @@ mod test {
     #[test]
     fn test_to_cartesian() {
         expect_both_close_to((0.0, 1.0), (0.0, -1.0));
-        expect_both_close_to((PI/2.0, 1.0), (1.0, 0.0));
+        expect_both_close_to((PI / 2.0, 1.0), (1.0, 0.0));
     }
 }

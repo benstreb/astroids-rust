@@ -26,13 +26,10 @@ fn main() {
     let opengl = OpenGL::V3_2;
     let config = Config::new();
 
-    let window = Rc::new(RefCell::new(Window::new(
-        WindowSettings::new(
-            "vs-game",
-            [config.width() as u32, config.height() as u32],
-        )
-        .exit_on_esc(true)
-    ).unwrap()));
+    let dims = [config.width() as u32, config.height() as u32];
+    let window_settings = WindowSettings::new("vs-game", dims).exit_on_esc(true);
+
+    let window = Rc::new(RefCell::new(Window::new(window_settings).unwrap()));
 
     let mut gl = GlGraphics::new(opengl);
     let mut rng = rand::thread_rng();
