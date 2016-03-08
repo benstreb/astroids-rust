@@ -4,6 +4,10 @@ extern crate graphics;
 extern crate opengl_graphics;
 extern crate rand;
 
+#[cfg(test)]
+#[macro_use(expect)]
+extern crate expectest;
+
 use piston::window::WindowSettings;
 use glutin_window::GlutinWindow as Window;
 use opengl_graphics::{GlGraphics, OpenGL};

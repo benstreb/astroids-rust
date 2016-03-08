@@ -12,7 +12,7 @@ use intersect::{Point, lines_intersect, point_in};
 
 use config::Config;
 
-fn to_cartesian(theta: f64, r: f64) -> (f64, f64) {
+pub fn to_cartesian(theta: f64, r: f64) -> (f64, f64) {
     return (
         theta.sin()*r,
         -theta.cos()*r,
@@ -322,11 +322,28 @@ impl Particle {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::f64::consts::PI;
+    use expectest::prelude::*;
 
     #[test]
     fn test_wrapped_add() {
         assert_eq!(wrapped_add(1.0, 1.0, 10.0), 2.0);
         assert_eq!(wrapped_add(1.0, 10.0, 10.0), 1.0);
         assert_eq!(wrapped_add(1.0, -5.0, 10.0), 6.0);
+    }
+
+    fn expect_both_close_to((r, theta): (f64, f64), (x_expected, y_expected): (f64, f64)) {
+        match to_cartesian(r, theta) {
+            (x, y) => {
+                expect!(x_expected).to(be_close_to(x));
+                expect!(y_expected).to(be_close_to(y));
+            }
+        }
+    }
+
+    #[test]
+    fn test_to_cartesian() {
+        expect_both_close_to((0.0, 1.0), (0.0, -1.0));
+        expect_both_close_to((PI/2.0, 1.0), (1.0, 0.0));
     }
 }
