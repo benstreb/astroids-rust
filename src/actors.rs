@@ -8,7 +8,8 @@ use rand::Rng;
 use rand::distributions::{Range, IndependentSample, Normal};
 use rand::distributions::range::SampleRange;
 use std::f64::consts::PI;
-use intersect::{Point, lines_intersect, point_in};
+use intersect::{lines_intersect, point_in};
+use point::Point;
 
 use config::Config;
 

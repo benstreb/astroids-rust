@@ -1,46 +1,4 @@
-use std::ops::{Sub, Div};
-
-#[derive(Copy, Clone)]
-pub struct Point {
-    x: f64,
-    y: f64,
-}
-
-impl Point {
-    pub fn new(x: f64, y: f64) -> Self {
-        Point { x: x, y: y }
-    }
-
-    fn cross(self, other: Point) -> f64 {
-        return self.x * other.y - other.x * self.y;
-    }
-
-    fn dot(self, other: Point) -> f64 {
-        return self.x * other.x + self.y * other.y;
-    }
-}
-
-impl Sub<Point> for Point {
-    type Output = Point;
-
-    fn sub(self, other: Point) -> Self::Output {
-        return Point {
-            x: self.x - other.x,
-            y: self.y - other.y,
-        };
-    }
-}
-
-impl Div<f64> for Point {
-    type Output = Point;
-
-    fn div(self, other: f64) -> Self::Output {
-        return Point {
-            x: self.x / other,
-            y: self.y / other,
-        };
-    }
-}
+use point::Point;
 
 // Intersection of p, p+r and q, q+s
 // For details, See: http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect

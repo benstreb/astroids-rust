@@ -17,6 +17,7 @@ use std::rc::Rc;
 
 mod actors;
 mod intersect;
+mod point;
 mod scene;
 mod config;
 use scene::{MainScene, Scene};
