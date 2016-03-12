@@ -1,6 +1,6 @@
 use std::ops::{Sub, Div};
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Point {
     pub x: f64,
     pub y: f64,
@@ -39,5 +39,16 @@ impl Div<f64> for Point {
             x: self.x / other,
             y: self.y / other,
         };
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use expectest::prelude::*;
+
+    #[test]
+    fn test_new() {
+        expect!(Point::new(1.0, 1.0)).to(be_equal_to(Point { x: 1.0, y: 1.0 }));
     }
 }
