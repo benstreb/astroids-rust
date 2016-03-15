@@ -47,8 +47,21 @@ mod test {
     use super::*;
     use expectest::prelude::*;
 
+    const P1: Point = Point { x: 2.0, y: 3.0 };
+    const P2: Point = Point { x: 5.0, y: 7.0 };
+
     #[test]
     fn test_new() {
-        expect!(Point::new(1.0, 1.0)).to(be_equal_to(Point { x: 1.0, y: 1.0 }));
+        expect!(Point::new(2.0, 3.0)).to(be_equal_to(P1));
+    }
+
+    #[test]
+    fn test_cross() {
+        expect!(P1.cross(P2)).to(be_equal_to(-1.0));
+    }
+
+    #[test]
+    fn test_dot() {
+        expect!(P1.dot(P2)).to(be_equal_to(31.0));
     }
 }
