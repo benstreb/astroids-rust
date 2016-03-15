@@ -48,6 +48,7 @@ mod test {
     use expectest::prelude::*;
 
     const P1: Point = Point { x: 2.0, y: 3.0 };
+    const P1_TIMES_2: Point = Point { x: 4.0, y: 6.0 };
     const P2: Point = Point { x: 5.0, y: 7.0 };
 
     #[test]
@@ -63,5 +64,11 @@ mod test {
     #[test]
     fn test_dot() {
         expect!(P1.dot(P2)).to(be_equal_to(31.0));
+    }
+
+    #[test]
+    fn test_ops() {
+        expect!(P1_TIMES_2 - P1).to(be_equal_to(P1));
+        expect!(P1_TIMES_2 / 2.0).to(be_equal_to(P1));
     }
 }
