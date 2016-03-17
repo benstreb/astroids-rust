@@ -1,4 +1,4 @@
-use std::ops::{Sub, Div};
+use std::ops::{Add, Div, Mul, Sub};
 
 #[derive(Copy, Clone, PartialEq, Debug)]
 pub struct Point {
@@ -17,6 +17,28 @@ impl Point {
 
     pub fn dot(self, other: Point) -> f64 {
         return self.x * other.x + self.y * other.y;
+    }
+}
+
+impl Add<Point> for Point {
+    type Output = Point;
+
+    fn add(self, other: Point) -> Self::Output {
+        return Point {
+            x: self.x + other.x,
+            y: self.y + other.y,
+        };
+    }
+}
+
+impl Mul<f64> for Point {
+    type Output = Point;
+
+    fn mul(self, other: f64) -> Self::Output {
+        return Point {
+            x: self.x * other,
+            y: self.y * other,
+        };
     }
 }
 
@@ -68,7 +90,9 @@ mod test {
 
     #[test]
     fn test_ops() {
+        expect!(P1 + P1).to(be_equal_to(P1_TIMES_2));
         expect!(P1_TIMES_2 - P1).to(be_equal_to(P1));
         expect!(P1_TIMES_2 / 2.0).to(be_equal_to(P1));
+        expect!(P1 * 2.0).to(be_equal_to(P1_TIMES_2));
     }
 }
