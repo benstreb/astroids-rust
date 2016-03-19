@@ -91,8 +91,8 @@ impl Spaceship {
 
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
         let (dx, dy) = to_cartesian(self.v_theta, self.v * dt);
-        self.x = (self.x + dx + x_max) % x_max;
-        self.y = (self.y + dy + y_max) % y_max;
+        self.x = wrapped_add(self.x, dx, x_max);
+        self.y = wrapped_add(self.y, dy, y_max);
     }
 
     pub fn accelerate(&mut self, dt: f64) {
@@ -171,8 +171,8 @@ impl Bullet {
 
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
         let v = 100.0;
-        self.x = (self.x + self.theta.sin() * v * dt + x_max) % x_max;
-        self.y = (self.y - self.theta.cos() * v * dt + y_max) % y_max;
+        self.x = wrapped_add(self.x, self.theta.sin() * v * dt, x_max);
+        self.y = wrapped_add(self.y, -self.theta.cos() * v * dt, y_max);
         self.distance += v * dt;
     }
 
@@ -258,8 +258,8 @@ impl Astroid {
     }
 
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
-        self.x = (self.x + self.theta.sin() * self.v * dt + x_max) % x_max;
-        self.y = (self.y - self.theta.cos() * self.v * dt + y_max) % y_max;
+        self.x = wrapped_add(self.x, self.theta.sin() * self.v * dt, x_max);
+        self.y = wrapped_add(self.y, -self.theta.cos() * self.v * dt, y_max);
     }
 
     pub fn create_border(mut rng: &mut Rng, radius: f64) -> Vec<[f64; 4]> {
