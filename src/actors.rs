@@ -25,6 +25,25 @@ pub fn wrapped_add(a: f64, b: f64, bound: f64) -> f64 {
     (a + b + bound) % bound
 }
 
+#[derive(PartialEq, Debug)]
+pub struct GameObject {
+    x: f64,
+    y: f64,
+    v: f64,
+    theta: f64,
+}
+
+impl GameObject {
+    fn new(x: f64, y: f64, v: f64, theta: f64) -> GameObject {
+        GameObject {
+            x: x,
+            y: y,
+            v: v,
+            theta: theta,
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct Spaceship {
     x: f64,
@@ -318,5 +337,15 @@ mod test {
     fn test_to_cartesian() {
         expect_both_close_to((0.0, 1.0), (0.0, -1.0));
         expect_both_close_to((PI / 2.0, 1.0), (1.0, 0.0));
+    }
+
+    #[test]
+    fn test_game_object_factories() {
+        expect!(GameObject::new(2.0, 3.0, 5.0, 7.0)).to(be_equal_to(GameObject {
+            x: 2.0,
+            y: 3.0,
+            v: 5.0,
+            theta: 7.0,
+        }));
     }
 }
