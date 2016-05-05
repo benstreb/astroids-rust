@@ -1,5 +1,5 @@
 extern crate piston;
-extern crate glutin_window;
+extern crate piston_window;
 extern crate graphics;
 extern crate opengl_graphics;
 extern crate rand;
@@ -8,10 +8,8 @@ extern crate rand;
 #[macro_use(expect)]
 extern crate expectest;
 
-use piston::window::WindowSettings;
-use glutin_window::GlutinWindow as Window;
+use piston_window::WindowSettings;
 use opengl_graphics::{GlGraphics, OpenGL};
-use rand::thread_rng;
 use std::cell::RefCell;
 use std::rc::Rc;
 
@@ -30,7 +28,7 @@ fn main() {
     let dims = [config.width() as u32, config.height() as u32];
     let window_settings = WindowSettings::new("vs-game", dims).exit_on_esc(true);
 
-    let window = Rc::new(RefCell::new(Window::new(window_settings).unwrap()));
+    let window = Rc::new(RefCell::new(window_settings.build().unwrap()));
 
     let mut gl = GlGraphics::new(opengl);
     let mut rng = rand::thread_rng();

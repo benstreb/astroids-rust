@@ -1,9 +1,8 @@
-use glutin_window::GlutinWindow;
+use piston_window::PistonWindow as Window;
 use graphics::{DrawState, Transformed};
 use graphics::text::Text;
 use opengl_graphics::GlGraphics;
 use opengl_graphics::glyph_cache::GlyphCache;
-use piston::event_loop::Events;
 use piston::input::{Button, Event, Input, Key, RenderArgs, UpdateArgs};
 use rand::Rng;
 use std::cell::RefCell;
@@ -18,7 +17,7 @@ use config::Config;
 pub trait Scene {
     fn events(&mut self,
               &mut Rng,
-              Rc<RefCell<GlutinWindow>>,
+              Rc<RefCell<Window>>,
               &mut GlGraphics,
               &Config)
               -> Option<Box<Scene>>;
@@ -112,14 +111,13 @@ const BLACK: [f32; 4] = [0.0, 0.0, 0.0, 1.0];
 impl Scene for MainScene {
     fn events(&mut self,
               mut rng: &mut Rng,
-              window: Rc<RefCell<GlutinWindow>>,
+              window: Rc<RefCell<Window>>,
               gl: &mut GlGraphics,
               config: &Config)
               -> Option<Box<Scene>> {
 
-        let ds = DrawState::new();
-        let ev = window.events();
-        for e in ev {
+        let ds = DrawState::default();
+        while let Some(e) = (*window).borrow_mut().next() {
             match e {
                 Event::Update(u) => {
                     let scene_change = self.update(u, rng, config);
@@ -160,15 +158,15 @@ impl GameOverScene {
 impl Scene for GameOverScene {
     fn events(&mut self,
               rng: &mut Rng,
-              window: Rc<RefCell<GlutinWindow>>,
+              window: Rc<RefCell<Window>>,
               gl: &mut GlGraphics,
               config: &Config)
               -> Option<Box<Scene>> {
-        let ds = DrawState::new();
+        let ds = DrawState::default();
         let game_over_text = Text::new_color(WHITE, 20);
         let font_path = Path::new("/usr/share/fonts/TTF/DejaVuSans.ttf");
         let mut character_cache: Box<GlyphCache> = Box::new(GlyphCache::new(font_path).unwrap());
-        for e in window.events() {
+        while let Some(e) = (*window).borrow_mut().next() {
             match e {
                 Event::Render(r) => {
                     self.end_game.draw(r, ds, gl);
