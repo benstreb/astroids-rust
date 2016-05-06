@@ -164,7 +164,7 @@ impl Scene for GameOverScene {
               -> Option<Box<Scene>> {
         let ds = DrawState::default();
         let game_over_text = Text::new_color(WHITE, 20);
-        let font_path = Path::new("/usr/share/fonts/TTF/DejaVuSans.ttf");
+        let font_path = Path::new("res/Carlito-Regular.ttf");
         let mut character_cache: Box<GlyphCache> = Box::new(GlyphCache::new(font_path).unwrap());
         while let Some(e) = (*window).borrow_mut().next() {
             match e {
