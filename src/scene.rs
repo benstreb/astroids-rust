@@ -7,7 +7,6 @@ use piston::input::{Button, Event, Input, Key, RenderArgs, UpdateArgs};
 use rand::Rng;
 use std::cell::RefCell;
 use std::borrow::BorrowMut;
-use std::path::Path;
 use std::iter::repeat;
 use std::rc::Rc;
 
@@ -164,7 +163,8 @@ impl Scene for GameOverScene {
               -> Option<Box<Scene>> {
         let ds = DrawState::default();
         let game_over_text = Text::new_color(WHITE, 20);
-        let font_path = Path::new("res/Carlito-Regular.ttf");
+        let font_path = config.font_path();
+        let (font_offset_x, font_offset_y) = config.font_offset();
         let mut character_cache: Box<GlyphCache> = Box::new(GlyphCache::new(font_path).unwrap());
         while let Some(e) = (*window).borrow_mut().next() {
             match e {
@@ -175,7 +175,8 @@ impl Scene for GameOverScene {
                                             character_cache.borrow_mut() as &mut GlyphCache,
                                             &ds,
                                             c.transform
-                                             .trans(config.width() / 2.0, config.height() / 2.0),
+                                             .trans(config.width() / 2.0, config.height() / 2.0)
+                                             .trans(font_offset_x, font_offset_y),
                                             gl);
                     });
                 }
