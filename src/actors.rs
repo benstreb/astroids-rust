@@ -170,6 +170,7 @@ impl Spaceship {
 pub struct Bullet {
     x: f64,
     y: f64,
+    v: f64,
     theta: f64,
     distance: f64,
 }
@@ -179,6 +180,7 @@ impl Bullet {
         return Bullet {
             x: x,
             y: y,
+            v: 100.0,
             theta: theta,
             distance: 0.0,
         };
@@ -189,10 +191,9 @@ impl Bullet {
     }
 
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
-        let v = 100.0;
-        self.x = wrapped_add(self.x, self.theta.sin() * v * dt, x_max);
-        self.y = wrapped_add(self.y, -self.theta.cos() * v * dt, y_max);
-        self.distance += v * dt;
+        self.x = wrapped_add(self.x, self.theta.sin() * self.v * dt, x_max);
+        self.y = wrapped_add(self.y, -self.theta.cos() * self.v * dt, y_max);
+        self.distance += self.v * dt;
     }
 
     pub fn is_alive(&self) -> bool {
