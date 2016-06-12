@@ -25,7 +25,7 @@ pub fn wrapped_add(a: f64, b: f64, bound: f64) -> f64 {
     (a + b + bound) % bound
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct GameObject {
     x: f64,
     y: f64,
@@ -46,11 +46,8 @@ impl GameObject {
 
 #[derive(Clone)]
 pub struct Spaceship {
-    x: f64,
-    y: f64,
-    v: f64,
+    obj: GameObject,
     v_theta: f64,
-    theta: f64,
     accel: f64,
     reverse: f64,
     left: f64,
@@ -64,11 +61,13 @@ const SPACESHIP_POINTS: [[f64; 2]; 3] = [[5.0, 7.0], [-5.0, 7.0], [0.0, -13.0]];
 impl Spaceship {
     pub fn new(config: &Config) -> Spaceship {
         return Spaceship {
-            x: config.width() / 2.0,
-            y: config.height() / 2.0,
-            v: 0.0,
+            obj: GameObject::new(
+                config.width() / 2.0,
+                config.height() / 2.0,
+                0.0,
+                0.0,
+            ),
             v_theta: 0.0,
-            theta: 0.0,
             accel: 0.0,
             reverse: 0.0,
             left: 0.0,
@@ -103,29 +102,29 @@ impl Spaceship {
     pub fn draw(&self, color: [f32; 4], ds: &DrawState, t: [[f64; 3]; 2], gl: &mut GlGraphics) {
         Polygon::new(color).draw(&SPACESHIP_POINTS,
                                  ds,
-                                 t.trans(self.x, self.y)
-                                  .rot_rad(self.theta),
+                                 t.trans(self.obj.x, self.obj.y)
+                                  .rot_rad(self.obj.theta),
                                  gl);
     }
 
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
-        let (dx, dy) = to_cartesian(self.v_theta, self.v * dt);
-        self.x = wrapped_add(self.x, dx, x_max);
-        self.y = wrapped_add(self.y, dy, y_max);
+        let (dx, dy) = to_cartesian(self.v_theta, self.obj.v * dt);
+        self.obj.x = wrapped_add(self.obj.x, dx, x_max);
+        self.obj.y = wrapped_add(self.obj.y, dy, y_max);
     }
 
     pub fn accelerate(&mut self, dt: f64) {
         let net_accel = (self.accel - self.reverse) * dt * 100.0;
-        let (dx, dy) = to_cartesian(self.v_theta, self.v);
-        let (ddx, ddy) = to_cartesian(self.theta, net_accel);
+        let (dx, dy) = to_cartesian(self.v_theta, self.obj.v);
+        let (ddx, ddy) = to_cartesian(self.obj.theta, net_accel);
         let new_dx = dx + ddx;
         let new_dy = dy + ddy;
-        self.v = (new_dx * new_dx + new_dy * new_dy).sqrt().min(200.0).max(-200.0);
+        self.obj.v = (new_dx * new_dx + new_dy * new_dy).sqrt().min(200.0).max(-200.0);
         self.v_theta = new_dx.atan2(-new_dy);
     }
 
     pub fn turn(&mut self, dt: f64) {
-        self.theta += (self.right - self.left) * dt * 100.0;
+        self.obj.theta += (self.right - self.left) * dt * 100.0;
     }
 
     pub fn cooldown(&mut self, dt: f64) {
@@ -142,18 +141,18 @@ impl Spaceship {
 
     pub fn fire(&mut self, bullets: &mut Vec<Bullet>) {
         self.cooldown = 0.5;
-        bullets.push(Bullet::new(self.x, self.y, self.theta));
+        bullets.push(Bullet::new(self.obj.x, self.obj.y, self.obj.theta));
     }
 
     pub fn edges(&self) -> Vec<[f64; 4]> {
-        let rotation_matrix = rotate_radians(self.theta);
+        let rotation_matrix = rotate_radians(self.obj.theta);
         let points: Vec<[f64; 2]> = SPACESHIP_POINTS.iter()
                                                     .map(|p| transform_pos(rotation_matrix, *p))
                                                     .collect();
         return points.iter()
                      .zip(points.iter().cycle().skip(1))
                      .map(|(p1, p2)| {
-                         [p1[0] + self.x, p1[1] + self.y, p2[0] + self.x, p2[1] + self.y]
+                         [p1[0] + self.obj.x, p1[1] + self.obj.y, p2[0] + self.obj.x, p2[1] + self.obj.y]
                      })
                      .collect();
     }
@@ -168,32 +167,31 @@ impl Spaceship {
 
 #[derive(Clone, Debug)]
 pub struct Bullet {
-    x: f64,
-    y: f64,
-    v: f64,
-    theta: f64,
+    obj: GameObject,
     distance: f64,
 }
 
 impl Bullet {
     fn new(x: f64, y: f64, theta: f64) -> Bullet {
         return Bullet {
-            x: x,
-            y: y,
-            v: 100.0,
-            theta: theta,
+            obj: GameObject::new(
+                x,
+                y,
+                100.0,
+                theta,
+            ),
             distance: 0.0,
         };
     }
 
     pub fn draw(&self, color: [f32; 4], t: [[f64; 3]; 2], gl: &mut GlGraphics) {
-        rectangle(color, rectangle::square(self.x, self.y, 2.0), t, gl);
+        rectangle(color, rectangle::square(self.obj.x, self.obj.y, 2.0), t, gl);
     }
 
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
-        self.x = wrapped_add(self.x, self.theta.sin() * self.v * dt, x_max);
-        self.y = wrapped_add(self.y, -self.theta.cos() * self.v * dt, y_max);
-        self.distance += self.v * dt;
+        self.obj.x = wrapped_add(self.obj.x, self.obj.theta.sin() * self.obj.v * dt, x_max);
+        self.obj.y = wrapped_add(self.obj.y, -self.obj.theta.cos() * self.obj.v * dt, y_max);
+        self.distance += self.obj.v * dt;
     }
 
     pub fn is_alive(&self) -> bool {
@@ -201,7 +199,7 @@ impl Bullet {
     }
 
     pub fn coords(&self) -> Point {
-        return Point::new(self.x, self.y);
+        return Point::new(self.obj.x, self.obj.y);
     }
 
     pub fn collides(&self, astroid: &Astroid) -> bool {
@@ -211,10 +209,7 @@ impl Bullet {
 
 #[derive(Clone)]
 pub struct Astroid {
-    x: f64,
-    y: f64,
-    v: f64,
-    theta: f64,
+    obj: GameObject,
     size: i64,
     border: Vec<[f64; 4]>,
 }
@@ -237,10 +232,12 @@ impl Astroid {
     pub fn new(size: i64, config: &Config, mut rng: &mut Rng) -> Astroid {
         let radius = (size * 5) as f64;
         return Astroid {
-            x: Astroid::random_start(config.width(), config.astroid_gap_distance(), &mut rng),
-            y: Astroid::random_start(config.height(), config.astroid_gap_distance(), &mut rng),
-            v: random(40.0, 60.0, &mut rng),
-            theta: random(0.0, 2.0 * PI, &mut rng),
+            obj: GameObject::new(
+                Astroid::random_start(config.width(), config.astroid_gap_distance(), &mut rng),
+                Astroid::random_start(config.height(), config.astroid_gap_distance(), &mut rng),
+                random(40.0, 60.0, &mut rng),
+                random(0.0, 2.0 * PI, &mut rng),
+            ),
             size: size,
             border: Astroid::create_border(&mut rng, radius),
         };
@@ -251,12 +248,14 @@ impl Astroid {
         let radius = (new_size * 5) as f64;
         let theta_range = Normal::new(0.0, PI / 2.0);
         let d_theta = theta_range.ind_sample(&mut rng);
-        let theta = self.theta + d_theta;
+        let theta = self.obj.theta + d_theta;
         return Astroid {
-            x: self.x + random(-5.0, 5.0, &mut rng),
-            y: self.y + random(-5.0, 5.0, &mut rng),
-            v: random(40.0, 60.0, &mut rng),
-            theta: theta,
+            obj: GameObject::new(
+                self.obj.x + random(-5.0, 5.0, &mut rng),
+                self.obj.y + random(-5.0, 5.0, &mut rng),
+                random(40.0, 60.0, &mut rng),
+                theta,
+            ),
             size: new_size,
             border: Astroid::create_border(&mut rng, radius),
         };
@@ -273,13 +272,13 @@ impl Astroid {
     pub fn draw(&self, color: [f32; 4], ds: &DrawState, t: [[f64; 3]; 2], gl: &mut GlGraphics) {
         let line_info = Line::new(color, 0.5);
         for line_points in self.border.iter() {
-            line_info.draw(*line_points, ds, t.trans(self.x, self.y), gl);
+            line_info.draw(*line_points, ds, t.trans(self.obj.x, self.obj.y), gl);
         }
     }
 
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
-        self.x = wrapped_add(self.x, self.theta.sin() * self.v * dt, x_max);
-        self.y = wrapped_add(self.y, -self.theta.cos() * self.v * dt, y_max);
+        self.obj.x = wrapped_add(self.obj.x, self.obj.theta.sin() * self.obj.v * dt, x_max);
+        self.obj.y = wrapped_add(self.obj.y, -self.obj.theta.cos() * self.obj.v * dt, y_max);
     }
 
     pub fn create_border(mut rng: &mut Rng, radius: f64) -> Vec<[f64; 4]> {
@@ -306,7 +305,7 @@ impl Astroid {
         return self.border
                    .iter()
                    .map(|edge| {
-                       [edge[0] + self.x, edge[1] + self.y, edge[2] + self.x, edge[3] + self.y]
+                       [edge[0] + self.obj.x, edge[1] + self.obj.y, edge[2] + self.obj.x, edge[3] + self.obj.y]
                    })
                    .collect();
     }
