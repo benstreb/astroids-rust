@@ -66,7 +66,7 @@ fn test_lines_intersect() {
 }
 
 fn ray(point: Point) -> [f64; 4] {
-    let Point{x, y} = point;
+    let Point { x, y } = point;
     return [-100000.0, y, x, y];
 }
 

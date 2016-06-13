@@ -61,12 +61,7 @@ const SPACESHIP_POINTS: [[f64; 2]; 3] = [[5.0, 7.0], [-5.0, 7.0], [0.0, -13.0]];
 impl Spaceship {
     pub fn new(config: &Config) -> Spaceship {
         return Spaceship {
-            obj: GameObject::new(
-                config.width() / 2.0,
-                config.height() / 2.0,
-                0.0,
-                0.0,
-            ),
+            obj: GameObject::new(config.width() / 2.0, config.height() / 2.0, 0.0, 0.0),
             v_theta: 0.0,
             accel: 0.0,
             reverse: 0.0,
@@ -103,7 +98,7 @@ impl Spaceship {
         Polygon::new(color).draw(&SPACESHIP_POINTS,
                                  ds,
                                  t.trans(self.obj.x, self.obj.y)
-                                  .rot_rad(self.obj.theta),
+                                     .rot_rad(self.obj.theta),
                                  gl);
     }
 
@@ -147,21 +142,21 @@ impl Spaceship {
     pub fn edges(&self) -> Vec<[f64; 4]> {
         let rotation_matrix = rotate_radians(self.obj.theta);
         let points: Vec<[f64; 2]> = SPACESHIP_POINTS.iter()
-                                                    .map(|p| transform_pos(rotation_matrix, *p))
-                                                    .collect();
+            .map(|p| transform_pos(rotation_matrix, *p))
+            .collect();
         return points.iter()
-                     .zip(points.iter().cycle().skip(1))
-                     .map(|(p1, p2)| {
-                         [p1[0] + self.obj.x, p1[1] + self.obj.y, p2[0] + self.obj.x, p2[1] + self.obj.y]
-                     })
-                     .collect();
+            .zip(points.iter().cycle().skip(1))
+            .map(|(p1, p2)| {
+                [p1[0] + self.obj.x, p1[1] + self.obj.y, p2[0] + self.obj.x, p2[1] + self.obj.y]
+            })
+            .collect();
     }
 
     pub fn collides<I: Iterator<Item = [f64; 4]>>(&self, edges: I) -> bool {
         let edges_vec: Vec<[f64; 4]> = edges.collect();
-        return self.edges().iter().any(|edge| {
-            edges_vec.iter().any(|other_edge| lines_intersect(*edge, *other_edge))
-        });
+        return self.edges()
+            .iter()
+            .any(|edge| edges_vec.iter().any(|other_edge| lines_intersect(*edge, *other_edge)));
     }
 }
 
@@ -174,12 +169,7 @@ pub struct Bullet {
 impl Bullet {
     fn new(x: f64, y: f64, theta: f64) -> Bullet {
         return Bullet {
-            obj: GameObject::new(
-                x,
-                y,
-                100.0,
-                theta,
-            ),
+            obj: GameObject::new(x, y, 100.0, theta),
             distance: 0.0,
         };
     }
@@ -232,12 +222,14 @@ impl Astroid {
     pub fn new(size: i64, config: &Config, mut rng: &mut Rng) -> Astroid {
         let radius = (size * 5) as f64;
         return Astroid {
-            obj: GameObject::new(
-                Astroid::random_start(config.width(), config.astroid_gap_distance(), &mut rng),
-                Astroid::random_start(config.height(), config.astroid_gap_distance(), &mut rng),
-                random(40.0, 60.0, &mut rng),
-                random(0.0, 2.0 * PI, &mut rng),
-            ),
+            obj: GameObject::new(Astroid::random_start(config.width(),
+                                                       config.astroid_gap_distance(),
+                                                       &mut rng),
+                                 Astroid::random_start(config.height(),
+                                                       config.astroid_gap_distance(),
+                                                       &mut rng),
+                                 random(40.0, 60.0, &mut rng),
+                                 random(0.0, 2.0 * PI, &mut rng)),
             size: size,
             border: Astroid::create_border(&mut rng, radius),
         };
@@ -250,12 +242,10 @@ impl Astroid {
         let d_theta = theta_range.ind_sample(&mut rng);
         let theta = self.obj.theta + d_theta;
         return Astroid {
-            obj: GameObject::new(
-                self.obj.x + random(-5.0, 5.0, &mut rng),
-                self.obj.y + random(-5.0, 5.0, &mut rng),
-                random(40.0, 60.0, &mut rng),
-                theta,
-            ),
+            obj: GameObject::new(self.obj.x + random(-5.0, 5.0, &mut rng),
+                                 self.obj.y + random(-5.0, 5.0, &mut rng),
+                                 random(40.0, 60.0, &mut rng),
+                                 theta),
             size: new_size,
             border: Astroid::create_border(&mut rng, radius),
         };
@@ -303,11 +293,14 @@ impl Astroid {
 
     pub fn edges(&self) -> Vec<[f64; 4]> {
         return self.border
-                   .iter()
-                   .map(|edge| {
-                       [edge[0] + self.obj.x, edge[1] + self.obj.y, edge[2] + self.obj.x, edge[3] + self.obj.y]
-                   })
-                   .collect();
+            .iter()
+            .map(|edge| {
+                [edge[0] + self.obj.x,
+                 edge[1] + self.obj.y,
+                 edge[2] + self.obj.x,
+                 edge[3] + self.obj.y]
+            })
+            .collect();
     }
 }
 

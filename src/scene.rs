@@ -37,9 +37,9 @@ impl MainScene {
             spaceship: Spaceship::new(config),
             bullets: Vec::new(),
             astroids: repeat(0)
-                          .take(difficulty)
-                          .map(|_| Astroid::large_new(config, rng))
-                          .collect(),
+                .take(difficulty)
+                .map(|_| Astroid::large_new(config, rng))
+                .collect(),
         };
     }
 
@@ -67,8 +67,8 @@ impl MainScene {
         }
         {
             let astroid_edges = self.astroids
-                                    .iter()
-                                    .flat_map(|astroid| astroid.edges());
+                .iter()
+                .flat_map(|astroid| astroid.edges());
             if self.spaceship.collides(astroid_edges) {
                 return Some(Box::new(GameOverScene::new(self)));
             }
@@ -81,16 +81,16 @@ impl MainScene {
             bullet.go(u.dt, config.width(), config.height());
             let mut collided = false;
             self.astroids = self.astroids
-                                .iter()
-                                .flat_map(|a| {
-                                    if bullet.collides(a) {
-                                        collided = true;
-                                        a.explode(rng)
-                                    } else {
-                                        vec![a.clone()]
-                                    }
-                                })
-                                .collect();
+                .iter()
+                .flat_map(|a| {
+                    if bullet.collides(a) {
+                        collided = true;
+                        a.explode(rng)
+                    } else {
+                        vec![a.clone()]
+                    }
+                })
+                .collect();
             if !collided {
                 new_bullets.push(bullet.clone());
             }
@@ -175,14 +175,16 @@ impl Scene for GameOverScene {
                                             character_cache.borrow_mut() as &mut GlyphCache,
                                             &ds,
                                             c.transform
-                                             .trans(config.width() / 2.0, config.height() / 2.0)
-                                             .trans(font_offset_x, font_offset_y),
+                                                .trans(config.width() / 2.0,
+                                                       config.height() / 2.0)
+                                                .trans(font_offset_x, font_offset_y),
                                             gl);
                     });
                 }
                 Event::Input(Input::Press(k)) => {
                     match k {
-                        Button::Keyboard(Key::Space) | Button::Keyboard(Key::R) => {
+                        Button::Keyboard(Key::Space) |
+                        Button::Keyboard(Key::R) => {
                             return Some(Box::new(MainScene::new(1, config, rng)))
                         }
                         Button::Keyboard(Key::Q) => return None,
