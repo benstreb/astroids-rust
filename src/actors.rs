@@ -42,12 +42,20 @@ impl GameObject {
             theta: theta,
         }
     }
+
+    pub fn with_go(&self, dt: f64, x_max: f64, y_max: f64) -> GameObject {
+        let (dx, dy) = to_cartesian(self.theta, self.v * dt);
+        GameObject::new(wrapped_add(self.x, dx, x_max),
+                        wrapped_add(self.y, dy, y_max),
+                        self.v,
+                        self.theta)
+    }
 }
 
 #[derive(Clone)]
 pub struct Spaceship {
     obj: GameObject,
-    v_theta: f64,
+    sprite_theta: f64,
     accel: f64,
     reverse: f64,
     left: f64,
@@ -62,7 +70,7 @@ impl Spaceship {
     pub fn new(config: &Config) -> Spaceship {
         return Spaceship {
             obj: GameObject::new(config.width() / 2.0, config.height() / 2.0, 0.0, 0.0),
-            v_theta: 0.0,
+            sprite_theta: 0.0,
             accel: 0.0,
             reverse: 0.0,
             left: 0.0,
@@ -98,28 +106,26 @@ impl Spaceship {
         Polygon::new(color).draw(&SPACESHIP_POINTS,
                                  ds,
                                  t.trans(self.obj.x, self.obj.y)
-                                     .rot_rad(self.obj.theta),
+                                     .rot_rad(self.sprite_theta),
                                  gl);
     }
 
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
-        let (dx, dy) = to_cartesian(self.v_theta, self.obj.v * dt);
-        self.obj.x = wrapped_add(self.obj.x, dx, x_max);
-        self.obj.y = wrapped_add(self.obj.y, dy, y_max);
+        self.obj = self.obj.with_go(dt, x_max, y_max);
     }
 
     pub fn accelerate(&mut self, dt: f64) {
         let net_accel = (self.accel - self.reverse) * dt * 100.0;
-        let (dx, dy) = to_cartesian(self.v_theta, self.obj.v);
-        let (ddx, ddy) = to_cartesian(self.obj.theta, net_accel);
+        let (dx, dy) = to_cartesian(self.obj.theta, self.obj.v);
+        let (ddx, ddy) = to_cartesian(self.sprite_theta, net_accel);
         let new_dx = dx + ddx;
         let new_dy = dy + ddy;
         self.obj.v = (new_dx * new_dx + new_dy * new_dy).sqrt().min(200.0).max(-200.0);
-        self.v_theta = new_dx.atan2(-new_dy);
+        self.obj.theta = new_dx.atan2(-new_dy);
     }
 
     pub fn turn(&mut self, dt: f64) {
-        self.obj.theta += (self.right - self.left) * dt * 100.0;
+        self.sprite_theta += (self.right - self.left) * dt * 100.0;
     }
 
     pub fn cooldown(&mut self, dt: f64) {
@@ -136,11 +142,11 @@ impl Spaceship {
 
     pub fn fire(&mut self, bullets: &mut Vec<Bullet>) {
         self.cooldown = 0.5;
-        bullets.push(Bullet::new(self.obj.x, self.obj.y, self.obj.theta));
+        bullets.push(Bullet::new(self.obj.x, self.obj.y, self.sprite_theta));
     }
 
     pub fn edges(&self) -> Vec<[f64; 4]> {
-        let rotation_matrix = rotate_radians(self.obj.theta);
+        let rotation_matrix = rotate_radians(self.sprite_theta);
         let points: Vec<[f64; 2]> = SPACESHIP_POINTS.iter()
             .map(|p| transform_pos(rotation_matrix, *p))
             .collect();
@@ -179,8 +185,7 @@ impl Bullet {
     }
 
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
-        self.obj.x = wrapped_add(self.obj.x, self.obj.theta.sin() * self.obj.v * dt, x_max);
-        self.obj.y = wrapped_add(self.obj.y, -self.obj.theta.cos() * self.obj.v * dt, y_max);
+        self.obj = self.obj.with_go(dt, x_max, y_max);
         self.distance += self.obj.v * dt;
     }
 
@@ -267,8 +272,7 @@ impl Astroid {
     }
 
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
-        self.obj.x = wrapped_add(self.obj.x, self.obj.theta.sin() * self.obj.v * dt, x_max);
-        self.obj.y = wrapped_add(self.obj.y, -self.obj.theta.cos() * self.obj.v * dt, y_max);
+        self.obj = self.obj.with_go(dt, x_max, y_max);
     }
 
     pub fn create_border(mut rng: &mut Rng, radius: f64) -> Vec<[f64; 4]> {
@@ -340,5 +344,14 @@ mod test {
             v: 5.0,
             theta: 7.0,
         }));
+    }
+
+    #[test]
+    fn test_game_object_go() {
+        let obj = GameObject::new(2.0, 3.0, 1.0, 0.0);
+        expect!(obj.with_go(1.0, 200.0, 200.0))
+            .to(be_equal_to(GameObject::new(2.0, 2.0, 1.0, 0.0)));
+        expect!(obj.with_go(200.0, 200.0, 200.0))
+            .to(be_equal_to(GameObject::new(2.0, 3.0, 1.0, 0.0)));
     }
 }
