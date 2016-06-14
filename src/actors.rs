@@ -17,6 +17,10 @@ pub fn to_cartesian(theta: f64, r: f64) -> (f64, f64) {
     return (theta.sin() * r, -theta.cos() * r);
 }
 
+pub fn to_polar(x: f64, y: f64) -> (f64, f64) {
+    return (x.atan2(-y), (x * x + y * y).sqrt());
+}
+
 fn random<T: SampleRange + PartialOrd>(low: T, high: T, mut rng: &mut Rng) -> T {
     return Range::new(low, high).ind_sample(&mut rng);
 }
@@ -120,8 +124,9 @@ impl Spaceship {
         let (ddx, ddy) = to_cartesian(self.sprite_theta, net_accel);
         let new_dx = dx + ddx;
         let new_dy = dy + ddy;
-        self.obj.v = (new_dx * new_dx + new_dy * new_dy).sqrt().min(200.0).max(-200.0);
-        self.obj.theta = new_dx.atan2(-new_dy);
+        let (new_theta, new_v) = to_polar(new_dx, new_dy);
+        self.obj.v = new_v.min(200.0).max(-200.0);
+        self.obj.theta = new_theta;
     }
 
     pub fn turn(&mut self, dt: f64) {
@@ -321,19 +326,21 @@ mod test {
         assert_eq!(wrapped_add(1.0, -5.0, 10.0), 6.0);
     }
 
-    fn expect_both_close_to((r, theta): (f64, f64), (x_expected, y_expected): (f64, f64)) {
-        match to_cartesian(r, theta) {
-            (x, y) => {
-                expect!(x_expected).to(be_close_to(x));
-                expect!(y_expected).to(be_close_to(y));
-            }
-        }
+    fn expect_both_close_to((x, y): (f64, f64), (x_expected, y_expected): (f64, f64)) {
+        expect!(x).to(be_close_to(x_expected));
+        expect!(y).to(be_close_to(y_expected));
     }
 
     #[test]
     fn test_to_cartesian() {
-        expect_both_close_to((0.0, 1.0), (0.0, -1.0));
-        expect_both_close_to((PI / 2.0, 1.0), (1.0, 0.0));
+        expect_both_close_to(to_cartesian(0.0, 1.0), (0.0, -1.0));
+        expect_both_close_to(to_cartesian(PI / 2.0, 1.0), (1.0, 0.0));
+    }
+
+    #[test]
+    fn test_to_polar() {
+        expect_both_close_to(to_polar(0.0, -1.0), (0.0, 1.0));
+        expect_both_close_to(to_polar(1.0, 0.0), (PI / 2.0, 1.0));
     }
 
     #[test]
