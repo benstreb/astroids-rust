@@ -1,25 +1,15 @@
-extern crate graphics;
-extern crate opengl_graphics;
-extern crate piston;
-extern crate piston_window;
-extern crate rand;
-extern crate rand_distr;
-
-#[cfg(test)]
-extern crate expectest;
-
-use opengl_graphics::{GlGraphics, OpenGL};
-use piston_window::WindowSettings;
-use std::cell::RefCell;
-use std::rc::Rc;
-
 mod actors;
 mod config;
 mod intersect;
 mod point;
 mod scene;
-use config::Config;
-use scene::{MainScene, Scene};
+
+use crate::config::Config;
+use crate::scene::{MainScene, Scene};
+use opengl_graphics::{GlGraphics, OpenGL};
+use piston_window::WindowSettings;
+use std::cell::RefCell;
+use std::rc::Rc;
 
 fn main() {
     let opengl = OpenGL::V3_2;

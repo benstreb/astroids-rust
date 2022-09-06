@@ -1,4 +1,4 @@
-use point::Point;
+use crate::point::Point;
 
 // Intersection of p, p+r and q, q+s
 // For details, See: http://stackoverflow.com/questions/563198/how-do-you-detect-where-two-line-segments-intersect

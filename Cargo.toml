@@ -4,6 +4,7 @@ version = "1.0.0"
 authors = [
     "Benjamin <bstreb@gmail.com>"
 ]
+edition = "2021"
 
 [[bin]]
 name = "astroids-rust"

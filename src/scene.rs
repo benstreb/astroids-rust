@@ -11,8 +11,8 @@ use std::cell::RefCell;
 use std::iter::repeat;
 use std::rc::Rc;
 
-use actors::{Astroid, Bullet, Spaceship};
-use config::Config;
+use crate::actors::{Astroid, Bullet, Spaceship};
+use crate::config::Config;
 
 pub trait Scene {
     fn events(

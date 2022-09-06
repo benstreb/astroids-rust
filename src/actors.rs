@@ -1,17 +1,16 @@
+use crate::config::Config;
+use crate::intersect::{lines_intersect, point_in};
+use crate::point::Point;
 use graphics::line::Line;
 use graphics::math::{rotate_radians, transform_pos};
 use graphics::polygon::Polygon;
 use graphics::{rectangle, DrawState, Transformed};
-use intersect::{lines_intersect, point_in};
 use opengl_graphics::GlGraphics;
 use piston::input::Key;
-use point::Point;
 use rand::{Rng, RngCore};
 use rand_distr::uniform::SampleUniform;
 use rand_distr::Normal;
 use std::f64::consts::PI;
-
-use config::Config;
 
 pub fn to_cartesian(theta: f64, r: f64) -> (f64, f64) {
     return (theta.sin() * r, -theta.cos() * r);
