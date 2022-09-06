@@ -1,25 +1,25 @@
-extern crate piston;
-extern crate piston_window;
 extern crate graphics;
 extern crate opengl_graphics;
+extern crate piston;
+extern crate piston_window;
 extern crate rand;
+extern crate rand_distr;
 
 #[cfg(test)]
-#[macro_use(expect)]
 extern crate expectest;
 
-use piston_window::WindowSettings;
 use opengl_graphics::{GlGraphics, OpenGL};
+use piston_window::WindowSettings;
 use std::cell::RefCell;
 use std::rc::Rc;
 
 mod actors;
+mod config;
 mod intersect;
 mod point;
 mod scene;
-mod config;
-use scene::{MainScene, Scene};
 use config::Config;
+use scene::{MainScene, Scene};
 
 fn main() {
     let opengl = OpenGL::V3_2;
@@ -33,7 +33,7 @@ fn main() {
     let mut gl = GlGraphics::new(opengl);
     let mut rng = rand::thread_rng();
 
-    let mut scene: Box<Scene> = Box::new(MainScene::new(1, &config, &mut rng));
+    let mut scene: Box<dyn Scene> = Box::new(MainScene::new(1, &config, &mut rng));
     while let Some(new_scene) = scene.events(&mut rng, window.clone(), &mut gl, &config) {
         scene = new_scene;
     }

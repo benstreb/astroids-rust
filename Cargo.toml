@@ -1,7 +1,6 @@
 [package]
-
 name = "astroids-rust"
-version = "0.0.0"
+version = "1.0.0"
 authors = [
     "Benjamin <bstreb@gmail.com>"
 ]
@@ -11,13 +10,14 @@ name = "astroids-rust"
 path = "src/main.rs"
 
 [dependencies]
-piston = '*'
-piston_window = '*'
-piston2d-graphics = '*'
-piston2d-opengl_graphics = '*'
-image = '*'
-rand = '*'
-num = { version = '*', features = ["rational"] }
+piston = '0.53.1'
+piston_window = '0.124.0'
+piston2d-graphics = '0.42.0'
+piston2d-opengl_graphics = '0.81.0'
+image = '0.24.3'
+rand = '0.8.5'
+num = { version = '0.1.42', features = ["rational"] }
+rand_distr = "0.4.3"
 
 [dev-dependencies]
 expectest = "*"

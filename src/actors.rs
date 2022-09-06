@@ -1,15 +1,15 @@
-use graphics::{DrawState, Transformed, rectangle};
-use graphics::polygon::Polygon;
 use graphics::line::Line;
-use graphics::math::{transform_pos, rotate_radians};
+use graphics::math::{rotate_radians, transform_pos};
+use graphics::polygon::Polygon;
+use graphics::{rectangle, DrawState, Transformed};
+use intersect::{lines_intersect, point_in};
 use opengl_graphics::GlGraphics;
 use piston::input::Key;
-use rand::Rng;
-use rand::distributions::{Range, IndependentSample, Normal};
-use rand::distributions::range::SampleRange;
-use std::f64::consts::PI;
-use intersect::{lines_intersect, point_in};
 use point::Point;
+use rand::{Rng, RngCore};
+use rand_distr::uniform::SampleUniform;
+use rand_distr::Normal;
+use std::f64::consts::PI;
 
 use config::Config;
 
@@ -21,8 +21,8 @@ pub fn to_polar(x: f64, y: f64) -> (f64, f64) {
     return (x.atan2(-y), (x * x + y * y).sqrt());
 }
 
-fn random<T: SampleRange + PartialOrd>(low: T, high: T, mut rng: &mut Rng) -> T {
-    return Range::new(low, high).ind_sample(&mut rng);
+fn random<T: std::cmp::PartialOrd + SampleUniform>(low: T, high: T, rng: &mut dyn RngCore) -> T {
+    rng.gen_range(low..high)
 }
 
 pub fn wrapped_add(a: f64, b: f64, bound: f64) -> f64 {
@@ -49,10 +49,12 @@ impl GameObject {
 
     pub fn with_go(&self, dt: f64, x_max: f64, y_max: f64) -> GameObject {
         let (dx, dy) = to_cartesian(self.theta, self.v * dt);
-        GameObject::new(wrapped_add(self.x, dx, x_max),
-                        wrapped_add(self.y, dy, y_max),
-                        self.v,
-                        self.theta)
+        GameObject::new(
+            wrapped_add(self.x, dx, x_max),
+            wrapped_add(self.y, dy, y_max),
+            self.v,
+            self.theta,
+        )
     }
 }
 
@@ -107,11 +109,12 @@ impl Spaceship {
     }
 
     pub fn draw(&self, color: [f32; 4], ds: &DrawState, t: [[f64; 3]; 2], gl: &mut GlGraphics) {
-        Polygon::new(color).draw(&SPACESHIP_POINTS,
-                                 ds,
-                                 t.trans(self.obj.x, self.obj.y)
-                                     .rot_rad(self.sprite_theta),
-                                 gl);
+        Polygon::new(color).draw(
+            &SPACESHIP_POINTS,
+            ds,
+            t.trans(self.obj.x, self.obj.y).rot_rad(self.sprite_theta),
+            gl,
+        );
     }
 
     pub fn go(&mut self, dt: f64, x_max: f64, y_max: f64) {
@@ -152,22 +155,31 @@ impl Spaceship {
 
     pub fn edges(&self) -> Vec<[f64; 4]> {
         let rotation_matrix = rotate_radians(self.sprite_theta);
-        let points: Vec<[f64; 2]> = SPACESHIP_POINTS.iter()
+        let points: Vec<[f64; 2]> = SPACESHIP_POINTS
+            .iter()
             .map(|p| transform_pos(rotation_matrix, *p))
             .collect();
-        return points.iter()
+        return points
+            .iter()
             .zip(points.iter().cycle().skip(1))
             .map(|(p1, p2)| {
-                [p1[0] + self.obj.x, p1[1] + self.obj.y, p2[0] + self.obj.x, p2[1] + self.obj.y]
+                [
+                    p1[0] + self.obj.x,
+                    p1[1] + self.obj.y,
+                    p2[0] + self.obj.x,
+                    p2[1] + self.obj.y,
+                ]
             })
             .collect();
     }
 
     pub fn collides<I: Iterator<Item = [f64; 4]>>(&self, edges: I) -> bool {
         let edges_vec: Vec<[f64; 4]> = edges.collect();
-        return self.edges()
-            .iter()
-            .any(|edge| edges_vec.iter().any(|other_edge| lines_intersect(*edge, *other_edge)));
+        return self.edges().iter().any(|edge| {
+            edges_vec
+                .iter()
+                .any(|other_edge| lines_intersect(*edge, *other_edge))
+        });
     }
 }
 
@@ -217,11 +229,11 @@ pub struct Astroid {
 const ASTROID_LARGE: i64 = 3;
 
 impl Astroid {
-    pub fn large_new(config: &Config, mut rng: &mut Rng) -> Astroid {
+    pub fn large_new(config: &Config, rng: &mut dyn RngCore) -> Astroid {
         return Self::new(ASTROID_LARGE, config, rng);
     }
 
-    fn random_start(max: f64, gap: f64, mut rng: &mut Rng) -> f64 {
+    fn random_start(max: f64, gap: f64, rng: &mut dyn RngCore) -> f64 {
         if random(0, 2, rng) == 0 {
             return random(0.0, max / 2.0 - gap, rng);
         } else {
@@ -229,39 +241,39 @@ impl Astroid {
         }
     }
 
-    pub fn new(size: i64, config: &Config, mut rng: &mut Rng) -> Astroid {
+    pub fn new(size: i64, config: &Config, mut rng: &mut dyn RngCore) -> Astroid {
         let radius = (size * 5) as f64;
         return Astroid {
-            obj: GameObject::new(Astroid::random_start(config.width(),
-                                                       config.astroid_gap_distance(),
-                                                       &mut rng),
-                                 Astroid::random_start(config.height(),
-                                                       config.astroid_gap_distance(),
-                                                       &mut rng),
-                                 random(40.0, 60.0, &mut rng),
-                                 random(0.0, 2.0 * PI, &mut rng)),
+            obj: GameObject::new(
+                Astroid::random_start(config.width(), config.astroid_gap_distance(), &mut rng),
+                Astroid::random_start(config.height(), config.astroid_gap_distance(), &mut rng),
+                random(40.0, 60.0, &mut rng),
+                random(0.0, 2.0 * PI, &mut rng),
+            ),
             size: size,
             border: Astroid::create_border(&mut rng, radius),
         };
     }
 
-    fn exploded(&self, mut rng: &mut Rng) -> Astroid {
+    fn exploded(&self, mut rng: &mut dyn RngCore) -> Astroid {
         let new_size = self.size - 1;
         let radius = (new_size * 5) as f64;
-        let theta_range = Normal::new(0.0, PI / 2.0);
-        let d_theta = theta_range.ind_sample(&mut rng);
+        let theta_range = Normal::new(0.0, PI / 2.0).unwrap();
+        let d_theta = rng.sample(theta_range);
         let theta = self.obj.theta + d_theta;
         return Astroid {
-            obj: GameObject::new(self.obj.x + random(-5.0, 5.0, &mut rng),
-                                 self.obj.y + random(-5.0, 5.0, &mut rng),
-                                 random(40.0, 60.0, &mut rng),
-                                 theta),
+            obj: GameObject::new(
+                self.obj.x + random(-5.0, 5.0, &mut rng),
+                self.obj.y + random(-5.0, 5.0, &mut rng),
+                random(40.0, 60.0, &mut rng),
+                theta,
+            ),
             size: new_size,
             border: Astroid::create_border(&mut rng, radius),
         };
     }
 
-    pub fn explode(&self, mut rng: &mut Rng) -> Vec<Astroid> {
+    pub fn explode(&self, rng: &mut dyn RngCore) -> Vec<Astroid> {
         if self.size <= 1 {
             vec![]
         } else {
@@ -280,7 +292,7 @@ impl Astroid {
         self.obj = self.obj.with_go(dt, x_max, y_max);
     }
 
-    pub fn create_border(mut rng: &mut Rng, radius: f64) -> Vec<[f64; 4]> {
+    pub fn create_border(mut rng: &mut dyn RngCore, radius: f64) -> Vec<[f64; 4]> {
         let spread = radius / 5.0;
         let point_count = random(8, 12, &mut rng);
         let mut points = Vec::with_capacity(point_count);
@@ -301,13 +313,16 @@ impl Astroid {
     }
 
     pub fn edges(&self) -> Vec<[f64; 4]> {
-        return self.border
+        return self
+            .border
             .iter()
             .map(|edge| {
-                [edge[0] + self.obj.x,
-                 edge[1] + self.obj.y,
-                 edge[2] + self.obj.x,
-                 edge[3] + self.obj.y]
+                [
+                    edge[0] + self.obj.x,
+                    edge[1] + self.obj.y,
+                    edge[2] + self.obj.x,
+                    edge[3] + self.obj.y,
+                ]
             })
             .collect();
     }
@@ -316,8 +331,8 @@ impl Astroid {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::f64::consts::PI;
     use expectest::prelude::*;
+    use std::f64::consts::PI;
 
     #[test]
     fn test_wrapped_add() {
